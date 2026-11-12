@@ -196,21 +196,6 @@ export function FriendsBook({ onClose, onInvite }: { onClose: () => void; onInvi
             <p className="text-sm">{profile.blocked ? "محظور" : ACTIVITY[profile.activity || "offline"]}</p>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-2 rounded-2xl border border-[var(--q-line)] bg-[var(--q-card)] px-3 py-2">
-          <p className="min-w-0 truncate text-xs" dir="ltr">{profile.id}</p>
-          <button
-            type="button"
-            className="min-h-10 shrink-0 rounded-xl border border-[var(--q-line)] px-3 text-sm"
-            onClick={() => {
-              void navigator.clipboard.writeText(profile.id).then(
-                () => setMsg("اننسخ المعرّف"),
-                () => setMsg("ما اننسخ المعرّف"),
-              );
-            }}
-          >
-            انسخ المعرّف
-          </button>
-        </div>
         {profile.blocked ? (
           <p className="text-sm leading-6">الحظر قائم. ما نعرض رتبته ولا إحصاءه.</p>
         ) : (
@@ -315,7 +300,7 @@ export function FriendsBook({ onClose, onInvite }: { onClose: () => void; onInvi
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value.slice(0, 40))}
-          placeholder="الاسم أو المعرّف"
+          placeholder="اسم المستخدم"
           aria-label="بحث عن لاعب"
           className="min-h-12 rounded-xl border border-[var(--q-line)] bg-[var(--q-input)] px-3 text-[var(--q-ink)]"
         />
@@ -337,7 +322,7 @@ export function FriendsBook({ onClose, onInvite }: { onClose: () => void; onInvi
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[var(--q-muted)]">ما لقينا أحد بهذا الاسم أو المعرّف.</p>
+          <p className="text-sm text-[var(--q-muted)]">ما لقينا أحد بهذا الاسم.</p>
         )
       ) : null}
       <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="أقسام الأصدقاء">

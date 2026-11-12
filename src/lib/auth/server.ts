@@ -91,7 +91,13 @@ export const authConfigured =
 // it derives the origin per-request from the (proxied) host, validated against the
 // preview allowlist, which makes the OAuth `redirect_uri` the concrete preview URL
 // the broker's preview client accepts.
-const explicitBaseURL = env("BETTER_AUTH_URL");
+// On Vercel the platform always provides the site's own host names. Use them when
+// BETTER_AUTH_URL is missing, so sign-up never fails with "Invalid origin" just
+// because one setting was forgotten.
+const vercelHosts = [env("VERCEL_PROJECT_PRODUCTION_URL"), env("VERCEL_BRANCH_URL"), env("VERCEL_URL")]
+  .filter((h): h is string => Boolean(h))
+  .map((h) => `https://${h.replace(/^https?:\/\//, "").replace(/\/+$/, "")}`);
+const explicitBaseURL = (env("BETTER_AUTH_URL")?.replace(/\/+$/, "")) ?? vercelHosts[0];
 // Explicit `string[]` (not a readonly tuple) — Better Auth's DynamicBaseURLConfig
 // requires a mutable `allowedHosts: string[]`.
 const previewAllowedHosts: string[] = [...PREVIEW_ALLOWED_HOSTS];
@@ -116,7 +122,7 @@ const baseURL = explicitBaseURL ?? {
 // Origins Better Auth accepts on credentialed POSTs (sign-up/sign-in, etc.).
 // Missing entries here surface as FORBIDDEN "Invalid origin".
 const trustedOrigins: string[] = explicitBaseURL
-  ? [explicitBaseURL, ...LOCAL_DEV_ORIGINS]
+  ? [...new Set([explicitBaseURL, ...vercelHosts, ...LOCAL_DEV_ORIGINS])]
   : [
       // Host wildcards (matched against Origin's host)
       ...previewAllowedHosts,
@@ -126,6 +132,9 @@ const trustedOrigins: string[] = explicitBaseURL
     ];
 
 const databaseUrl = env("DATABASE_URL");
+
+/** True when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are both set. */
+export const googleConfigured = Boolean(env("GOOGLE_CLIENT_ID") && env("GOOGLE_CLIENT_SECRET"));
 
 // Static broker OAuth endpoints (skip OIDC discovery on every sign-in / callback).
 // Discovery would cost an extra network hop to the broker before the popup can
@@ -197,6 +206,7 @@ export const auth = betterAuth({
       trustedProviders: [
         ...GROK_PROVIDERS.map((p) => p.providerId),
         GATE_PROVIDER_ID,
+        "google",
       ],
       // X's synthetic email is never "verified", so don't gate linking on the
       // local user's email-verified state.
@@ -209,6 +219,12 @@ export const auth = betterAuth({
   // window and reduces auth flicker. See the `auth` skill for the full
   // flicker-prevention guidance (gate on `isPending`; SSR the session).
   session: { cookieCache: { enabled: true, maxAge: 300 } },
+
+  // Google sign-in, only when the site owner has set Google OAuth credentials.
+  // Redirect URI to register in Google Cloud: <site>/api/auth/callback/google
+  ...(googleConfigured
+    ? { socialProviders: { google: { clientId: env("GOOGLE_CLIENT_ID") as string, clientSecret: env("GOOGLE_CLIENT_SECRET") as string, prompt: "select_account" as const } } }
+    : {}),
 
   // Local email/password — toggled only via `./email-password` (not a plugin).
   ...(emailAndPasswordEnabled ? { emailAndPassword: { enabled: true } } : {}),

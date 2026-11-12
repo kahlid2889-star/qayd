@@ -7775,35 +7775,9 @@ function paintSettings() {
     const name = document.createElement('b'); name.textContent = P.name || 'ضيف قيد';
     const id = document.createElement('small');
     id.dir = 'auto';
-    if (P.accountId) {
-      const label = document.createElement('span');
-      label.textContent = 'معرّف ';
-      const code = document.createElement('bdi');
-      code.dir = 'ltr';
-      code.textContent = P.accountId;
-      id.append(label, code);
-    } else id.textContent = 'ضيف على هذا الجهاز';
+    // The internal account id is never shown: players only need to know they are signed in.
+    id.textContent = P.accountId ? 'حسابك محفوظ' : 'ضيف على هذا الجهاز';
     ident.append(name, id);
-    if (P.accountId) {
-      const copy = document.createElement('button');
-      copy.type = 'button';
-      copy.className = 'set-lift';
-      copy.textContent = 'نسخ المعرّف';
-      copy.onclick = () => {
-        const done = () => setSaveNote('تم النسخ');
-        const fallback = () => {
-          const area = document.createElement('textarea');
-          area.value = P.accountId;
-          document.body.append(area);
-          area.select();
-          try { document.execCommand('copy'); done(); } catch (e) { setSaveNote('انسخ المعرّف من السطر'); }
-          area.remove();
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(P.accountId).then(done, fallback);
-        else fallback();
-      };
-      ident.append(copy);
-    }
   }
   const ava = document.getElementById('set-avatar');
   if (ava) { ava.innerHTML = playerAvatarMarkup(); ava.onclick = () => { showSetPane('account'); sfx('click'); }; }

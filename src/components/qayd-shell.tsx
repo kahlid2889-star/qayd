@@ -39,6 +39,12 @@ const PALETTES: Record<string, Record<string, string>> = {
   },
 };
 
+// The traditional sheet is dark maroon, so its cards and text need dark-sheet colours.
+const TRAD_SHEET: Record<string, string> = {
+  "--q-card": "rgba(246, 234, 215, 0.07)", "--q-ink": "#F6EAD7", "--q-muted": "#C9B59A",
+  "--q-line": "rgba(224, 196, 138, 0.32)", "--q-input": "#14080C", "--q-accent": "#F0D48A", "--q-error": "#FF9DB0",
+};
+
 function readTheme(): string {
   try {
     const raw = JSON.parse(localStorage.getItem("sb") || "{}") as { theme?: unknown };
@@ -318,7 +324,6 @@ function frameSrc(boot: string) {
 
 function AccountBox({
   name,
-  userId,
   login,
   wins,
   games,
@@ -335,7 +340,6 @@ function AccountBox({
   onClose,
 }: {
   name: string;
-  userId: string;
   login: string;
   wins: number;
   games: number;
@@ -354,12 +358,9 @@ function AccountBox({
   return (
     <div className="grid gap-3">
       <div className="rounded-2xl border border-[var(--q-line)] bg-[var(--q-card)] px-3 py-3">
-        <p className="text-xs text-[var(--q-muted)]">على الطاولة</p>
+        <p className="text-xs text-[var(--q-muted)]">اسمك</p>
         <p className="qayd-display text-2xl text-[var(--q-accent)]">{name}</p>
-        {login ? <p className="text-sm">اسم الدخول: {login}</p> : null}
-        <p className="mt-1 text-xs text-[var(--q-muted)]" dir="ltr">
-          {userId}
-        </p>
+        {login ? <p className="text-sm">اسم المستخدم: <bdi>{login}</bdi></p> : null}
       </div>
       <div className="grid grid-cols-3 gap-2 text-center text-sm">
         <div className="rounded-xl bg-[var(--q-card)] px-2 py-2">
@@ -1014,7 +1015,7 @@ export function QaydShell() {
         <div className="fixed inset-0 z-20 flex items-end justify-center bg-[#0c0608]/78" onClick={() => void leaveLobby()}>
           <section
             className="qayd-sheet max-h-[92dvh] w-full overflow-auto rounded-t-[28px] px-5 pt-3 pb-[max(20px,env(safe-area-inset-bottom))] text-[var(--q-ink)] sm:max-w-md sm:mb-6 sm:rounded-[28px] sm:border-b"
-            style={PALETTES[theme] as CSSProperties}
+            style={(theme === "trad" ? { ...PALETTES.trad, ...TRAD_SHEET } : PALETTES[theme]) as CSSProperties}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-label={panel === "online" ? TITLE : panel === "friends" ? "الأصدقاء" : "الحساب"}
@@ -1028,7 +1029,6 @@ export function QaydShell() {
                 >
                   <AccountBox
                     name={localName() || user?.displayName || "لاعب"}
-                    userId={user?.id || ""}
                     login={loginLabel(user?.primaryEmail)}
                     wins={localStats().wins}
                     games={localStats().games}
