@@ -12,6 +12,8 @@
     seed: 0,
     matchId: null,
     xpWaiters: new Map(),
+    /* The next startGame() is an online match, not a game against the computer. */
+    kick() { onlineKick = true; },
     human(seat) {
       return this.role === "host" && Number(seat) !== 0 && !!this.humans[seat];
     },
@@ -1171,6 +1173,15 @@
     }
     originalSet(key, value);
     if (data) net.post({ type: "profile", profile: data });
+    if (net.role === "peer" && data && window.QaidSync) {
+      const games = data.games || 0;
+      if (games > seenGames) {
+        seenGames = games;
+        seenWins = data.wins || 0;
+        try { net.post(Object.assign({ type: "over" }, QaidSync.report())); } catch (e) { /* ignore */ }
+      }
+      return;
+    }
     if (net.role !== "host" || !data) return;
     const games = data.games || 0;
     const wins = data.wins || 0;

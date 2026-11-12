@@ -3900,6 +3900,7 @@ const QaidAudio = (() => {
     getContext: () => ctx, music: Music, drawControls });
 })();
 const sfx = (key, options) => {
+  if (window.QaidSync && QaidSync.replaying) return;
   try { if (window.QaidNet && QaidNet.noteSound) QaidNet.noteSound(key); } catch (e) { /* bridge */ }
   QaidAudio.sfx(key, options);
   try { if (window.QaidNet && QaidNet.hear) QaidNet.hear(key); } catch (e) { /* bridge */ }
@@ -5964,10 +5965,13 @@ let cfg = { mode: 'friendly', len: 152, vis: 'pub', stake: 0 }, G = null, R = nu
 let epoch = 0, pending = null, TI = null, toastTimer, clockLast=0, qaidClock=null;
 const STOP = new Error('cancelled-game');
 const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const hostingLive = () => !!(window.QaidNet && QaidNet.role === 'host' && QaidNet.humans && Object.keys(QaidNet.humans).length);
+const hostingLive = () => SYNC() || !!(window.QaidNet && QaidNet.role === 'host' && QaidNet.humans && Object.keys(QaidNet.humans).length);
 // Alone against the computer an open sheet stops the clock. With friends seated the table keeps running.
 const paused = () => !hostingLive() && (document.hidden || ['se','ov'].some(id => $('#'+id)?.classList.contains('on')));
-const FAST = new URLSearchParams(location.search).has('testfast');
+const FAST_URL = new URLSearchParams(location.search).has('testfast');
+let FAST = FAST_URL;
+/* Online: every phone runs the same match and only the moves travel (qayd-sync.js). */
+const SYNC = () => !!(window.QaidSync && QaidSync.on);
 function ensure(token) { if (token !== epoch) throw STOP; }
 async function wait(ms, token = epoch) {
   let left = FAST ? Math.min(ms, 12) : ms;
@@ -6255,17 +6259,18 @@ async function startGame() {
   const token=++epoch;CardMotion.cancelAll();clearTimer();pending=null;hideHandLineup();
   const lock=QaidBots.profiles.some(bot=>bot.id===P.partnerBot)?P.partnerBot:'sultan';
   const carried=window.QaidNet&&QaidNet.matchId;if(window.QaidNet)QaidNet.matchId=null;const xpMatchId=carried||('m-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8));
-  G={sc:[0,0],n:0,dealer:Math.floor(Math.random()*4),hist:[],bots:null,partnerLock:lock,lastOpponents:null,xpMatchId,xpSettled:false,gradesBySeat:[[],[],[],[]],cutsBySeat:[[0,0],[0,0],[0,0],[0,0]]};
+  G={sc:[0,0],n:0,dealer:SYNC()?QaidSync.firstDealer():Math.floor(Math.random()*4),hist:[],bots:null,partnerLock:lock,lastOpponents:null,xpMatchId,xpSettled:false,gradesBySeat:[[],[],[],[]],cutsBySeat:[[0,0],[0,0],[0,0],[0,0]]};
   cfg.stake=STAKES.includes(cfg.stake)?cfg.stake:0;
   if(!QaidWallet.remote()&&cfg.stake>QaidWallet.coins)cfg.stake=0;
   G.stake=cfg.stake;G.mode=cfg.mode;G.len=cfg.len;window.__qaydSlamArmed=false;
-  if(G.stake&&!QaidWallet.remote())QaidWallet.add(-G.stake);
-  QaidBots.setTier(window.QaidNet&&QaidNet.role==='host'&&QaidNet.holdOnline?0:STAKES.indexOf(G.stake));
+  if(G.stake&&!QaidWallet.remote()&&!(SYNC()&&!QaidSync.payStake(G.stake)))QaidWallet.add(-G.stake);
+  QaidBots.setTier(SYNC()||(window.QaidNet&&QaidNet.role==='host'&&QaidNet.holdOnline)?0:STAKES.indexOf(G.stake));
   paintCoins();
   document.querySelectorAll('.mod').forEach(e=>e.classList.remove('on'));show('gm');sizes();
   try{await round(token);}catch(error){if(error!==STOP){console.error(error);say('تعذر إكمال الصكة. يمكنك الخروج وبدء لعبة جديدة.',0);}}
 }
 function assignHandBots() {
+  if(SYNC()){G.bots=QaidSync.cast();G.lastOpponents=null;return;}
   const lock=(G&&G.partnerLock)||P.partnerBot||'sultan';
   const partner=QaidBots.profiles.some(bot=>bot.id===lock)?lock:'sultan';
   let cast=QaidBots.cast(partner,G.lastOpponents,fairShuffleRandom);
@@ -6358,7 +6363,7 @@ async function round(token) {
     await showHandLineup(token);ensure(token);
     if(typeof fitTable==='function')fitTable();if(typeof sizes==='function')sizes();
   }
-  G.n++;G.dealer=(G.dealer+1)%4;const dealt=Baloot.deal(Baloot.shuffled(fairShuffleRandom),G.dealer);
+  G.n++;G.dealer=(G.dealer+1)%4;const deck=SYNC()?await QaidSync.deal(token):Baloot.shuffled(fairShuffleRandom);ensure(token);const dealt=Baloot.deal(deck,G.dealer);
   R={h:[[],[],[],[]],rest:dealt.rest,floor:dealt.floor,mode:null,T:-1,buyer:-1,recipient:-1,turn:(G.dealer+1)%4,trick:[],pts:[0,0],tk:[0,0],n:0,bel:[0,0],decl:[[],[],[],[]],pl:[[],[],[],[]],log:[],last:[],myTurn:false,phase:'deal',multiplier:1,open:true,violations:[],bidRound:1,dealer:G.dealer,lastDecision:-1,contractKind:null,flippedKaboot:true};
   if(window.QaidNet)QaidNet.reveal=null;
   ['sl0','sl1','sl2','sl3','fl','act','hand','prj','rml'].forEach(id=>$('#'+id).innerHTML='');resetTrickLayers();renderSeats();renderLast();
@@ -6454,7 +6459,16 @@ async function driveBuy(st, token) {
     R.buyPhase = st.phase;
     renderSeats();
     let action;
-    if (seat===0) {
+    if (SYNC()) {
+      if (seat!==0) $('#act').innerHTML = '';
+      const __v = qnView('bid', st.phase, seat);
+      const fallback = st.phase==='SUIT' ? 'suit:'+SecondBuy.defaultSuit(R.h[0].slice(0, 5), R.floor) : opts[0];
+      action = await QaidSync.buy(seat, token, {
+        mine: () => choose(opts.map(value => ({ label: QaidBuy.bubble(value, st.floorSuit), value, className: bidTone(value) })), opts.includes(fallback) ? fallback : opts[0], token, 18),
+        lead: async () => { await wait(st.phase==='DOUBLING' ? 320 : 480, token); return botBuy(st, seat); },
+      });
+      if (QaidSync.person(seat)) (R.dec = R.dec || []).push({ seat, view: __v, action: { type: 'buy', value: action } });
+    } else if (seat===0) {
       const fallback = st.phase==='SUIT' ? 'suit:'+SecondBuy.defaultSuit(R.h[0].slice(0, 5), R.floor) : opts[0];
       const __v = qnView('bid', st.phase, 0);
       action = await choose(opts.map(value => ({ label: QaidBuy.bubble(value, st.floorSuit), value, className: bidTone(value) })), opts.includes(fallback) ? fallback : opts[0], token, 18);
@@ -6895,6 +6909,7 @@ function showBotQaid(detector, violation) {
     qaydPublish(true, { kind: violation.kind, reveal: revealPid, cheat: cheatPid }, { seat: detector, name: NM(detector), locked: true });
     ok.onclick=()=>{qaydPublish(false);closeOv();resolve();};
     root.append(title,note,row,ok);
+    if(SYNC())setTimeout(()=>{if(document.body.contains(ok))ok.click();},QaidSync.replaying?10:5000);
   });
 }
 function detectViolation() { return null; }
@@ -6966,7 +6981,8 @@ function settleBotQayd(v, random) {
 async function accuseIfReady(list) {
   for (const v of list) {
     if (!R || R.forced) return;
-    const detector = settleBotQayd(v);
+    const detector = SYNC() ? await QaidSync.catchCut(v, epoch) : settleBotQayd(v);
+    if (!R || R.forced) return;
     if (detector == null) {
       if (v.p % 2 === 0 && cfg.mode === 'free') log('انكشف القطع وما تقيّد — كمّل');
       continue;
@@ -7114,10 +7130,29 @@ async function play(token) {
     }
     for(let i=R.trick.length;i<4;i++){
       const p=R.turn;renderSeats();let played;
-      if(p===0){const __v=qnView('play', undefined, 0);played=await humanCard(token);if(played&&played.card)(R.dec=R.dec||[]).push({seat:0,view:__v,action:{type:'card',card:{s:played.card.s,r:played.card.r}}});if(!played)return;if(played.qayd){await endRound(token);return;}if(played.claim){await finishClaim(played.claim,token);return;}}
+      if(SYNC()){
+        const __v=qnView('play', undefined, p);
+        if(p!==0)startClock(()=>{},QaidSync.person(p)?(P.turnTime||25):(P.speed==='fast'?0.85:2.4),p);
+        played=await QaidSync.card(p,token,{
+          mine:()=>humanCard(token),
+          lead:async()=>{const sec=P.speed==='fast'?0.85:2.4;await wait(Math.round(sec*1000),token);return aiPick(p);},
+        });
+        if(p!==0)clearTimer();
+        if(!played)return;
+        if(played.card&&QaidSync.person(p))(R.dec=R.dec||[]).push({seat:p,view:__v,action:{type:'card',card:{s:played.card.s,r:played.card.r}}});
+        if(played.local){
+          if(played.qayd){await endRound(token);return;}
+          if(played.claim){await finishClaim(played.claim,token);return;}
+        }else if(played.sawa){
+          if(await hostSawa(p,token))return;
+          played={card:Baloot.legal(R.h[p],R.trick,p,R.mode,R.T,{open:R.open})[0],from:throwOrigin(p),net:true};
+        }else if(played.qayd){applyQayd(p,matchQayd(p,played.qayd));await endRound(token);return;}
+        else if(played.decl&&R.n===0)declare(p);
+      }
+      else if(p===0){const __v=qnView('play', undefined, 0);played=await humanCard(token);if(played&&played.card)(R.dec=R.dec||[]).push({seat:0,view:__v,action:{type:'card',card:{s:played.card.s,r:played.card.r}}});if(!played)return;if(played.qayd){await endRound(token);return;}if(played.claim){await finishClaim(played.claim,token);return;}}
       else if(window.QaidNet&&QaidNet.human(p)){const __v=qnView('play', undefined, p);if(R.n===0)declare(p);played=await QaidNet.card(p,token);if(!played)return;if(played.card)(R.dec=R.dec||[]).push({seat:p,view:__v,action:{type:'card',card:{s:played.card.s,r:played.card.r}}});if(played.sawa){if(await hostSawa(p,token))return;played={card:aiPick(p),from:throwOrigin(p)};}else if(played.qayd){applyQayd(p,matchQayd(p,played.qayd));await endRound(token);return;}}
       else{const sec=P.speed==='fast'?0.85:2.4;let done=false;startClock(()=>{done=true;},sec,p);await wait(Math.round(sec*1000),token);if(!done)clearTimer();if(R.n===0)declare(p);played={card:maybeSlip(p,aiPick(p)),from:throwOrigin(p)};}
-      await put(p,played.card,played.from,token,played.akk);
+      await put(p,played.card,played.from,token,played.akk,played.net?played:null);
       if(R.forced){await endRound(token);return;}
       R.turn=(p+1)%4;
     }
@@ -7129,11 +7164,12 @@ async function play(token) {
   }
   await endRound(token);
 }
-async function put(p,card,from,token,akk=false) {
+async function put(p,card,from,token,akk=false,net=null) {
   ensure(token);clearTimer();
-  const askedAkk=R.trick.length===0&&hk()&&card.s!==R.T&&card.r!==7&&(p!==0||!!akk);
+  const person=p===0||(SYNC()&&QaidSync.person(p));
+  const askedAkk=R.trick.length===0&&hk()&&card.s!==R.T&&card.r!==7&&(!person||!!akk);
   const trueAkk=askedAkk&&akkValid(card);
-  const falseAkk=askedAkk&&!trueAkk&&p===0&&cfg.mode==='free';
+  const falseAkk=askedAkk&&!trueAkk&&person&&cfg.mode==='free';
   const invalid=Baloot.violation(R.h[p],R.trick,p,card,R.mode,R.T,{open:R.open});
   const proved=noteReveal(p,card);
   let violation=null;
@@ -7175,8 +7211,8 @@ async function put(p,card,from,token,akk=false) {
   // Chronological paint order: the most recent throw is above every prior seat.
   slot.style.zIndex=String(10+R.trick.length);slot.dataset.throwOrder=String(R.trick.length);slot.append(element);
   hostPulse();
-  const slam=p===0&&window.__qaydSlamArmed===true&&chargeSlam();
-  if(window.__qaydSlamArmed){window.__qaydSlamArmed=false;paintSlam();}
+  const slam=net?!!net.slam:(p===0&&window.__qaydSlamArmed===true&&chargeSlam());
+  if(!net&&window.__qaydSlamArmed){window.__qaydSlamArmed=false;paintSlam();}
   await Promise.all([CardMotion.handAfter(handBefore,token),CardMotion.play(element,from,p,token,slam)]);
   log(NM(p)+': '+cn(card));
   if(proved.length) await accuseIfReady(proved);
@@ -7189,6 +7225,7 @@ async function sweep(winner,token) {
   ['sl0','sl1','sl2','sl3'].forEach(id=>$('#'+id).innerHTML='');resetTrickLayers();hostPulse();
 }
 function maybeSlip(p, card) {
+  if(SYNC())return card;
   if(cfg.mode!=='free'||!R||p%2!==1)return card;
   const hand=R.h[p];
   const ok=Baloot.legal(hand,R.trick,p,R.mode,R.T,{open:R.open});
@@ -7591,6 +7628,7 @@ function qaid() {
     if(!picks.kind){hint='اختر نوع القيد';paint();return;}
     if(!picks.reveal||!picks.cheat){hint='اختر الورقتين أول';paint();return;}
     const a=picks.reveal.split(':').map(Number),b=picks.cheat.split(':').map(Number);
+    if(R)R.qaydSent={ kind: picks.kind, reveal: a, cheat: b };
     applyQayd(0, matchQayd(0, { kind: picks.kind, reveal: a, cheat: b }));
     endReview({qayd:true});
   };
@@ -7684,8 +7722,8 @@ async function endRound(token) {
   if(done&&G.stake){const box=document.createElement('div');box.className='qn-coins '+(win?'pos':'neg');const gift=QaidWallet.takeGift();
     box.innerHTML='<div><span>'+(win?'ربحت اللعب على '+fmtNum(G.stake):'خسرت دخولك')+'</span>'+coinTag(G.stake,'',win?'+':'−')+'</div><div class="bal"><span>رصيدك</span><span id="res-bal">'+coinTag(QaidWallet.coins)+'</span></div>'+(gift?'<p class="note">خلصت عملاتك، وهذي ١٠٠ من الديوانية تكمّل فيها.</p>':'');
     $('#ob').insertBefore(box,$('#nx'));}
-  await new Promise(resolve=>{pending=resolve;$('#nx').onclick=()=>resolvePending(true);});ensure(token);closeOv();
-  if(done){++epoch;R=null;G=null;show('mn');home();renderBotAvatars();}else await round(token);
+  await new Promise(resolve=>{pending=resolve;$('#nx').onclick=()=>resolvePending(true);if(SYNC())QaidSync.autoNext(token,done);});ensure(token);closeOv();
+  if(done){if(SYNC())QaidSync.finish();++epoch;R=null;G=null;show('mn');home();renderBotAvatars();}else await round(token);
 }
 function confetti() {if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(P.prefs&&(P.prefs.reduceFx||(P.prefs.notif&&P.prefs.notif.event===0)))return;for(let i=0;i<36;i++){const e=document.createElement('div');e.className='cf';e.style.left=Math.random()*100+'vw';e.style.background=['#d9a441','#7a1f1f','#fff'][i%3];e.style.animationDelay=Math.random()+'s';document.body.append(e);setTimeout(()=>e.remove(),4500);}}
 function showHistory() {
@@ -9843,7 +9881,7 @@ function swap(){const mn=document.getElementById('mn');if(!mn)return;const bar=m
  if(brand)brand.classList.add('qn-empty');}
 const run=()=>{swap();const mn=document.getElementById('mn');if(mn&&!mn.__qnObs){mn.__qnObs=new MutationObserver(()=>{if(!run.busy){run.busy=1;requestAnimationFrame(()=>{swap();run.busy=0;});}});mn.__qnObs.observe(mn,{childList:true,subtree:true});}};
 if(document.readyState!=='loading')run();else addEventListener('DOMContentLoaded',run);setTimeout(run,300);setTimeout(run,1500);})();
-</script><script src="qayd-net.js"></script><style id="qayd-v3">
+</script><script src="qayd-net.js"></script><script src="qayd-sync.js"></script><style id="qayd-v3">
 /* v3: coins, stake lobby, qayd sheet, reveal sheet. All colors come from the --qb-* theme tokens. */
 .coin { width: 1.15em; height: 1.15em; flex: none; vertical-align: -.2em; filter: drop-shadow(0 1px 1px rgba(0,0,0,.22)); }
 .coin-amt { display: inline-flex; align-items: center; gap: .32em; font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -8,6 +8,8 @@ const NAMED_CODE = "qafit";
 const NAMED_TITLE = "قيد ما يقيد إلا القافط";
 const SEATS = [0, 2, 1, 3];
 const STALE_MS = 20_000;
+/** In a live match, a seat silent this long is played by the computer until it returns. */
+const HERE_MS = 8_000;
 /** A live table whose host has been silent this long is handed back to the lobby. */
 const HOST_LOST_MS = 45_000;
 /** A real match cannot finish faster than this; quicker "results" are refused. */
@@ -79,7 +81,7 @@ const schemaRef = globalThis as typeof globalThis & {
   __qaydSchemaVersion__?: number;
 };
 
-const SCHEMA_VERSION = 10;
+const SCHEMA_VERSION = 11;
 
 /**
  * Idempotent schema top-up. Runs ONCE per server process: the old code issued
@@ -168,6 +170,19 @@ function ensureSchema(sql: SqlClient): Promise<void> {
         read_at bigint,
         created_at bigint not null
       )`;
+    // Online matches: every phone runs the same table and only the moves travel.
+    await sql`alter table qayd_matches add column if not exists info jsonb`;
+    await sql`
+      create table if not exists qayd_moves (
+        match_id text not null,
+        k integer not null,
+        seat integer not null,
+        user_id text not null,
+        body jsonb not null,
+        at bigint not null,
+        primary key (match_id, k)
+      )`;
+    await sql`alter table qayd_moves enable row level security`;
     await sql`
       create unique index if not exists qayd_notifications_dedupe_idx
       on qayd_notifications (user_id, dedupe)`;
@@ -268,6 +283,8 @@ async function roster(sql: SqlClient, code: string) {
       seat: m.seat,
       name: m.name,
       online: now - Number(m.last_seen) < STALE_MS,
+      /* During a match a phone checks in every ~1.5 s; 8 s of silence means it left or slept. */
+      here: now - Number(m.last_seen) < HERE_MS,
     })),
   };
 }
@@ -350,17 +367,12 @@ export const joinRoom = createServerFn({ method: "POST" })
       select phase, host_id, match_id from qayd_rooms where code = ${data.code}`;
     let phase = rooms[0]?.phase ?? "lobby";
     if (phase === "live") {
-      const hostId = rooms[0]?.host_id;
-      const seenRows = hostId
-        ? await sql<{ last_seen: number }>`
-            select last_seen from qayd_members where code = ${data.code} and user_id = ${hostId}`
-        : [];
-      const seen = seenRows[0] ? Number(seenRows[0].last_seen) : 0;
-      // Same clock as syncRoom. A guest reload must not wipe the table at 20s,
-      // and the other seats stay so they can start the next hand.
-      if (!hostId || !seen || now - seen >= HOST_LOST_MS) {
+      // Every phone runs the match, so it lives as long as anyone is still at the table.
+      const alive = await sql<{ user_id: string }>`
+        select user_id from qayd_members where code = ${data.code} and last_seen > ${now - HOST_LOST_MS} limit 1`;
+      if (!alive.length) {
         const flipped = await sql<{ code: string }>`
-          update qayd_rooms set phase = 'lobby', host_id = null, match_id = null, updated_at = ${now}
+          update qayd_rooms set phase = 'lobby', match_id = null, updated_at = ${now}
           where code = ${data.code} and phase = 'live'
           returning code`;
         if (flipped.length) {
@@ -368,14 +380,24 @@ export const joinRoom = createServerFn({ method: "POST" })
           if (matchId) {
             await sql`update qayd_matches set ended_at = ${now} where match_id = ${matchId} and ended_at is null`;
           }
-          if (hostId) {
-            await sql`delete from qayd_members where code = ${data.code} and user_id = ${hostId}`;
-            await sql`
-              insert into qayd_mail (code, to_user, from_user, kind, body, at)
-              values (${data.code}, null, ${hostId}, 'reset', ${JSON.stringify({ reason: "host-lost" })}::jsonb, ${now})`;
-          }
+          await sql`delete from qayd_members where code = ${data.code}`;
           phase = "lobby";
         }
+      }
+    }
+    let resume: { [key: string]: Json } | null = null;
+    if (phase === "live" && rooms[0]?.match_id) {
+      // A player who left (or reloaded) mid-match takes the same seat back and replays the moves.
+      const back = await sql<{ seat: number; info: unknown }>`
+        select s.seat, m.info from qayd_match_seats s join qayd_matches m on m.match_id = s.match_id
+        where s.match_id = ${rooms[0].match_id} and s.user_id = ${context.userId} and m.winner is null and m.info is not null`;
+      if (back[0]) {
+        resume = { ...asObject(back[0].info), matchId: String(rooms[0].match_id), you: Number(back[0].seat) };
+        await sql`delete from qayd_members where code = ${data.code} and seat = ${Number(back[0].seat)} and user_id <> ${context.userId}`;
+        await sql`
+          insert into qayd_members (code, user_id, seat, name, last_seen)
+          values (${data.code}, ${context.userId}, ${Number(back[0].seat)}, ${data.name}, ${now})
+          on conflict (code, user_id) do update set seat = excluded.seat, last_seen = excluded.last_seen`;
       }
     }
     const mine = await sql<{ seat: number | null }>`
@@ -403,7 +425,7 @@ export const joinRoom = createServerFn({ method: "POST" })
     const room = await roster(sql, data.code);
     const cursor = await sql<{ id: number }>`
       select coalesce(max(id), 0) as id from qayd_mail where code = ${data.code}`;
-    return { ok: true as const, room, since: Number(cursor[0]?.id ?? 0) };
+    return { ok: true as const, room, since: Number(cursor[0]?.id ?? 0), resume };
   });
 
 export const syncRoom = createServerFn({ method: "POST" })
@@ -441,43 +463,27 @@ export const syncRoom = createServerFn({ method: "POST" })
     let changed = false;
 
     if (before.phase === "live" && before.hostId && before.hostId !== uid && before.hostAwayMs >= HOST_LOST_MS) {
-      // The table runs in the host's browser. If the host vanished, nobody can
-      // play a card, so end the match and let the others start a new one.
-      const flipped = await sql<{ code: string }>`
-        update qayd_rooms set phase = 'lobby', host_id = null, match_id = null, updated_at = ${now}
-        where code = ${data.code} and phase = 'live' and host_id = ${before.hostId}
-        returning code`;
-      if (flipped.length) {
-        if (before.matchId) {
-          await sql`update qayd_matches set ended_at = ${now} where match_id = ${before.matchId} and ended_at is null`;
-        }
-        await sql`delete from qayd_members where code = ${data.code} and user_id = ${before.hostId}`;
-        await sql`
-          insert into qayd_mail (code, to_user, from_user, kind, body, at)
-          values (${data.code}, null, ${before.hostId}, 'reset', ${JSON.stringify({ reason: "host-lost" })}::jsonb, ${now})`;
-      }
+      // The owner went away, but the match runs on every phone. Hand the room to the next player.
+      const next = before.members
+        .filter((m) => m.online && m.seat != null && m.userId !== before.hostId)
+        .sort((x, y) => Number(x.seat) - Number(y.seat))[0];
+      await sql`update qayd_rooms set host_id = ${next ? next.userId : uid}, updated_at = ${now} where code = ${data.code} and host_id = ${before.hostId}`;
       changed = true;
     } else if (data.cmd === "leave") {
       changed = true;
       const mineSeat = before.members.find((m) => m.userId === uid)?.seat ?? null;
-      if (before.hostId === uid && before.phase === "live") {
-        await sql`delete from qayd_members where code = ${data.code}`;
-        await sql`update qayd_rooms set phase = 'lobby', host_id = null, match_id = null, updated_at = ${now} where code = ${data.code}`;
+      await sql`delete from qayd_members where code = ${data.code} and user_id = ${uid}`;
+      if (before.hostId === uid) {
+        const next = before.members
+          .filter((m) => m.online && m.seat != null && m.userId !== uid)
+          .sort((x, y) => Number(x.seat) - Number(y.seat))[0];
+        await sql`update qayd_rooms set host_id = ${next ? next.userId : null}, updated_at = ${now} where code = ${data.code}`;
+      }
+      if (before.phase === "live" && !before.members.some((m) => m.userId !== uid && m.online)) {
+        // Last one out: nobody is left to finish the match.
+        await sql`update qayd_rooms set phase = 'lobby', match_id = null, updated_at = ${now} where code = ${data.code}`;
         if (before.matchId) {
           await sql`update qayd_matches set ended_at = ${now} where match_id = ${before.matchId} and ended_at is null`;
-        }
-        await sql`
-          insert into qayd_mail (code, to_user, from_user, kind, body, at)
-          values (${data.code}, null, ${uid}, 'reset', ${JSON.stringify({ reason: "leave" })}::jsonb, ${now})`;
-      } else {
-        await sql`delete from qayd_members where code = ${data.code} and user_id = ${uid}`;
-        if (before.phase === "live" && mineSeat != null && before.hostId && before.hostId !== uid) {
-          await sql`
-            insert into qayd_mail (code, to_user, from_user, kind, body, at)
-            values (${data.code}, ${before.hostId}, ${uid}, 'drop', ${JSON.stringify({ seat: mineSeat })}::jsonb, ${now})`;
-        }
-        if (before.hostId === uid) {
-          await sql`update qayd_rooms set host_id = null, updated_at = ${now} where code = ${data.code}`;
         }
       }
     } else if (data.cmd === "reset") {
@@ -562,7 +568,9 @@ export const syncRoom = createServerFn({ method: "POST" })
         matchId,
         seats: humans.map((m) => ({ userId: m.userId, seat: m.seat, name: m.name })),
         settings: before.settings,
+        topic: await movesTopic(matchId),
       };
+      await sql`update qayd_matches set info = ${JSON.stringify(body)}::jsonb where match_id = ${matchId}`;
       await sql`
         insert into qayd_mail (code, to_user, from_user, kind, body, at)
         values (${data.code}, null, ${uid}, 'start', ${JSON.stringify(body)}::jsonb, ${now})`;
@@ -587,8 +595,8 @@ export const syncRoom = createServerFn({ method: "POST" })
           toUser = current.hostId;
           body = { ...body, seat: mySeat };
         } else {
-          // Table state, turn prompts and the final result come from the host only.
-          if (!isHost) continue;
+          // Every phone plays the same match, so any seated player may report the result; the first one counts.
+          if (kind === "over" ? mySeat == null : !isHost) continue;
           if (kind === "over") {
             toUser = null;
             const winner = Number(body.winner) === 0 ? 0 : 1;
@@ -683,8 +691,8 @@ async function vetSettle(
   if (row.kind === "room") {
     let winner = row.winner == null ? null : Number(row.winner);
     if (winner == null) {
-      if (row.owner_id !== userId) return { ok: false, gone: false, error: "نتيجة الصكة ما وصلت من صاحب الطاولة بعد." };
-      winner = data.won ? 0 : 1;
+      // Every phone plays the same match: the first seated player to report sets the winner.
+      winner = data.won ? Number(row.seat) % 2 : 1 - (Number(row.seat) % 2);
       await sql`update qayd_matches set winner = ${winner}, ended_at = ${now} where match_id = ${data.matchId} and winner is null`;
     }
     won = Number(row.seat) % 2 === winner;
@@ -1380,3 +1388,117 @@ export const publishNotice = createServerFn({ method: "POST" })
     return { ok: true as const, sent: targets.length };
   });
 
+
+/* ───────────── Online moves ─────────────
+ * Every phone runs the same match. The only thing that travels is the list of
+ * decisions (the deal, each bid, each card, a bot catching a cut), numbered
+ * 0, 1, 2… The first write for a number wins, so all phones apply the same
+ * list in the same order. Supabase Realtime pushes each new move at once;
+ * pulling is the fallback and the way a returning player catches up. */
+
+function supabaseRealtime() {
+  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/\/+$/, "");
+  const secret = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  const publicKey = (
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    ""
+  ).trim();
+  if (!url || !secret || !publicKey) return null;
+  return { url, secret, publicKey };
+}
+
+/** An unguessable channel name per match: only the players get it, inside the start message. */
+async function movesTopic(matchId: string) {
+  const secret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || "qayd-local-moves";
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`moves:${matchId}`)));
+  return "qm-" + Array.from(mac.slice(0, 12), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function broadcastMoves(topic: string, moves: { k: number; seat: number; body: unknown }[]) {
+  const rt = supabaseRealtime();
+  if (!rt || !moves.length) return;
+  const headers: Record<string, string> = { "content-type": "application/json", apikey: rt.secret };
+  if (rt.secret.startsWith("eyJ")) headers.authorization = `Bearer ${rt.secret}`;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    await fetch(`${rt.url}/realtime/v1/api/broadcast`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ messages: [{ topic, event: "m", payload: { moves }, private: false }] }),
+      signal: ctrl.signal,
+    }).finally(() => clearTimeout(timer));
+  } catch {
+    /* Pulling still delivers the move. */
+  }
+}
+
+async function seatedIn(sql: SqlClient, matchId: string, userId: string) {
+  const rows = await sql<{ seat: number }>`
+    select seat from qayd_match_seats where match_id = ${matchId} and user_id = ${userId}`;
+  return rows[0] ? Number(rows[0].seat) : null;
+}
+
+function cleanMove(value: unknown) {
+  const raw = JSON.stringify(value ?? null);
+  if (raw.length > 2000) throw new Error("الحركة كبيرة");
+  return JSON.parse(raw) as Json;
+}
+
+/** Where the instant channel lives (public values only), or null to pull. */
+export const movesConfig = createServerFn({ method: "GET" }).handler(async () => {
+  const rt = supabaseRealtime();
+  return rt ? { url: rt.url, key: rt.publicKey } : null;
+});
+
+export const pushMove = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: unknown) => {
+    const body = asObject(input);
+    const k = Number(body.k);
+    const seat = Number(body.seat);
+    if (!Number.isInteger(k) || k < 0 || k > 6000) throw new Error("رقم الحركة غير صالح");
+    if (!Number.isInteger(seat) || seat < -1 || seat > 3) throw new Error("المقعد غير صالح");
+    return { matchId: cleanMatchId(body.matchId), k, seat, body: cleanMove(body.body) };
+  })
+  .handler(async ({ context, data }) => {
+    const sql = await getSql();
+    await ensureSchema(sql);
+    if ((await seatedIn(sql, data.matchId, context.userId)) == null) {
+      return { ok: false as const, error: "لست في هذه الصكة" };
+    }
+    const now = Date.now();
+    const inserted = await sql<{ k: number }>`
+      insert into qayd_moves (match_id, k, seat, user_id, body, at)
+      values (${data.matchId}, ${data.k}, ${data.seat}, ${context.userId}, ${JSON.stringify(data.body)}::jsonb, ${now})
+      on conflict (match_id, k) do nothing
+      returning k`;
+    const rows = await sql<{ k: number; seat: number; body: unknown }>`
+      select k, seat, body from qayd_moves where match_id = ${data.matchId} and k = ${data.k}`;
+    const move = rows[0] ? { k: Number(rows[0].k), seat: Number(rows[0].seat), body: asObject(rows[0].body) } : null;
+    if (inserted.length && move) await broadcastMoves(await movesTopic(data.matchId), [move]);
+    return { ok: true as const, move };
+  });
+
+export const pullMoves = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: unknown) => {
+    const body = asObject(input);
+    return { matchId: cleanMatchId(body.matchId), since: Math.max(-1, Math.floor(Number(body.since) || -1)) };
+  })
+  .handler(async ({ context, data }) => {
+    const sql = await getSql();
+    await ensureSchema(sql);
+    if ((await seatedIn(sql, data.matchId, context.userId)) == null) {
+      return { ok: false as const, error: "لست في هذه الصكة", moves: [] as never[] };
+    }
+    const rows = await sql<{ k: number; seat: number; body: unknown }>`
+      select k, seat, body from qayd_moves
+      where match_id = ${data.matchId} and k > ${data.since}
+      order by k asc limit 400`;
+    return { ok: true as const, moves: rows.map((r) => ({ k: Number(r.k), seat: Number(r.seat), body: asObject(r.body) })) };
+  });

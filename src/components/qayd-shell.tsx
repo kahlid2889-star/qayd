@@ -3,7 +3,7 @@ import { SignInGate } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authClient, signOut } from "@/lib/auth/client";
 import { AuthPanel } from "@/components/auth-panel";
-import { beginMatch, inviteFriend, joinRoom, listFriends, listNotices, loadProfile, releasePlayer, saveProfile, settleXp, syncRoom } from "@/lib/qayd/server";
+import { beginMatch, inviteFriend, joinRoom, listFriends, listNotices, loadProfile, movesConfig, pullMoves, pushMove, releasePlayer, saveProfile, settleXp, syncRoom } from "@/lib/qayd/server";
 import { FriendsBook } from "@/components/qayd-friends";
 import { NoticeBell, type NoticeItem } from "@/components/qayd-notices";
 import { pushMail, restoreBatch, takeBatch } from "@/lib/qayd/mail";
@@ -453,6 +453,13 @@ export function QaydShell() {
   const [note, setNote] = useState("");
   const [privateCode, setPrivateCode] = useState("");
   const [live, setLive] = useState(false);
+  /* The online match this page carries moves for (every phone runs the same table). */
+  const [syncMatch, setSyncMatch] = useState<{ matchId: string; topic: string } | null>(null);
+  const syncRef = useRef<{ matchId: string; have: number; online: string; awayNames: string; seats: { seat: number; name: string }[] } | null>(null);
+  const endSync = () => {
+    syncRef.current = null;
+    setSyncMatch(null);
+  };
   const [passNow, setPassNow] = useState("");
   const [passNext, setPassNext] = useState("");
   const [passNote, setPassNote] = useState("");
@@ -615,7 +622,14 @@ export function QaydShell() {
         }, 700);
         return;
       }
+      if (data.type === "sync-done") {
+        endSync();
+        try { sessionStorage.removeItem("qayd-match"); } catch { /* ignore */ }
+        setBanner(null);
+        return;
+      }
       if (data.type === "local") {
+        endSync();
         detachedRef.current = true;
         engineLiveRef.current = false;
         droppedRef.current.clear();
@@ -642,6 +656,21 @@ export function QaydShell() {
           });
         };
         attempt(3);
+        return;
+      }
+      if (data.type === "sync-push") {
+        const move = data as unknown as { matchId?: string; k?: number; seat?: number; body?: Record<string, unknown> };
+        const matchId = String(move.matchId || "");
+        if (!user || !matchId) return;
+        const send = (left: number) => {
+          void pushMove({ data: { matchId, k: Number(move.k), seat: Number(move.seat), body: move.body || {} } })
+            .then((res) => {
+              if (res.ok && res.move) tell({ cmd: "sync-moves", matchId, moves: [res.move] });
+              else if (!res.ok && left > 0) window.setTimeout(() => send(left - 1), 800);
+            })
+            .catch(() => { if (left > 0) window.setTimeout(() => send(left - 1), 800); });
+        };
+        send(6);
         return;
       }
       if (data.type === "xp") {
@@ -747,7 +776,22 @@ export function QaydShell() {
           setRoom(res.room);
           setLive(res.room.phase === "live");
           if (res.room.phase !== "live") engineLiveRef.current = false;
-          const hostAway = res.room.phase === "live" && res.room.hostId !== uid && res.room.hostOnline === false;
+          const sync = syncRef.current;
+          if (sync && res.room.phase === "live") {
+            const here = res.room.members.filter((m) => m.here && m.seat != null);
+            const online = here.map((m) => Number(m.seat)).sort().join(",");
+            if (online !== sync.online) {
+              sync.online = online;
+              tell({ cmd: "sync-online", seats: here.map((m) => Number(m.seat)) });
+            }
+            const away = sync.seats.filter((x) => x.seat >= 0 && !here.some((m) => Number(m.seat) === x.seat)).map((x) => x.name);
+            const awayNames = away.join("، ");
+            if (awayNames !== sync.awayNames) {
+              sync.awayNames = awayNames;
+              setBanner(awayNames ? { text: `${awayNames} طلع من الصكة. الكمبيوتر يلعب عنه لين يرجع.` } : null);
+            }
+          }
+          const hostAway = !sync && res.room.phase === "live" && res.room.hostId !== uid && res.room.hostOnline === false;
           if (hostAway && !hostAwayRef.current) {
             setBanner({ text: "صاحب الطاولة انقطع. ننتظره شوي، وإذا ما رجع ترجع الديوانية." });
           } else if (!hostAway && hostAwayRef.current) {
@@ -796,12 +840,7 @@ export function QaydShell() {
         const humans: Record<number, string> = {};
         for (const seat of seats) humans[seat.seat] = seat.name;
         if (!mine) return;
-        if (mine.seat === 0) {
-          tell({ cmd: "arm", humans, seed: body.seed, matchId: body.matchId || null, settings: body.settings || null });
-          tell({ cmd: "go" });
-        } else {
-          tell({ cmd: "guest", you: mine.seat, seats, matchId: body.matchId || null, settings: body.settings || null });
-        }
+        startSync({ ...body, you: mine.seat, seats, matchId: String(body.matchId || ""), topic: String(body.topic || "") }, []);
         engineLiveRef.current = true;
         droppedRef.current.clear();
         try { sessionStorage.setItem("qayd-match", JSON.stringify({ code, matchId: body.matchId || null })); } catch { /* ignore */ }
@@ -811,6 +850,7 @@ export function QaydShell() {
         return;
       }
       if (kind === "reset") {
+        endSync();
         engineLiveRef.current = false;
         droppedRef.current.clear();
         try { sessionStorage.removeItem("qayd-match"); } catch { /* ignore */ }
@@ -833,6 +873,7 @@ export function QaydShell() {
       if (kind === "qayd-watch") tell({ cmd: "qayd-watch", body });
       if (kind === "drop") tell({ cmd: "drop", seat: Number(body.seat) });
       if (kind === "adopt") tell({ cmd: "adopt", seat: Number(body.seat), name: String(body.name || "") });
+      if (kind === "over" && syncRef.current) return;
       if (kind === "over") {
         const mine = roomRef.current?.members.find((m) => m.userId === me);
         tell({ cmd: "result", you: mine?.seat ?? 2, winner: body.winner, scores: body.scores, matchId: body.matchId || roomRef.current?.matchId || null, eval: body.eval, cuts: body.cuts });
@@ -843,13 +884,15 @@ export function QaydShell() {
     const loop = async () => {
       await tick();
       if (stop) return;
+      // During a match the moves travel on their own channel; the room only needs a heartbeat.
+      const playing = roomRef.current?.phase === "live" && !!syncRef.current;
       const busy =
-        roomRef.current?.phase === "live" ||
+        (roomRef.current?.phase === "live" && !playing) ||
         cmdRef.current !== "poll" ||
         outboxRef.current.length > 0 ||
         pendingRef.current.seats.length > 0 ||
         !!pendingRef.current.config;
-      timer = window.setTimeout(() => void loop(), busy ? 120 : 1200);
+      timer = window.setTimeout(() => void loop(), busy ? 120 : playing ? 1500 : 1200);
     };
     void loop();
     return () => {
@@ -857,6 +900,21 @@ export function QaydShell() {
       window.clearTimeout(timer);
     };
   }, [code, user?.id]);
+
+  function startSync(info: Record<string, unknown>, moves: { k: number; seat: number; body: Record<string, unknown> }[]) {
+    const matchId = String(info.matchId || "");
+    if (!matchId) return;
+    const seats = (Array.isArray(info.seats) ? (info.seats as { seat: number; name: string }[]) : [])
+      .map((x) => ({ seat: Number(x.seat), name: String(x.name || "") }));
+    syncRef.current = { matchId, have: moves.length ? moves[moves.length - 1].k : -1, online: "", awayNames: "", seats };
+    tell({ cmd: "sync-start", ...info, matchId, moves });
+    engineLiveRef.current = true;
+    droppedRef.current.clear();
+    setSyncMatch({ matchId, topic: String(info.topic || "") });
+    try { sessionStorage.setItem("qayd-match", JSON.stringify({ code: codeRef.current, matchId })); } catch { /* ignore */ }
+    setLive(true);
+    setPanel(null);
+  }
 
   async function enter(next: string, create = false): Promise<string | null> {
     detachedRef.current = false;
@@ -884,19 +942,20 @@ export function QaydShell() {
       setCode(res.room.code);
       setLive(res.room.phase === "live");
       if (res.room.phase === "live") {
-        const mine = res.room.members.find((m) => m.userId === user?.id);
-        if (mine?.seat === 0 && !engineLiveRef.current) {
-          cmdRef.current = "reset";
-          setNote("انقطعت الصكة السابقة. رجعناها للديوانية عشان ما يعلق أحد.");
-        } else if (mine?.seat != null && mine.seat !== 0) {
-          const seats = res.room.members
-            .filter((m) => m.seat != null)
-            .map((m) => ({ userId: m.userId, seat: m.seat, name: m.name }));
-          tell({ cmd: "guest", you: mine.seat, seats, matchId: res.room.matchId || null, settings: res.room.settings || null });
-          engineLiveRef.current = true;
-          setNote("رجعت لنفس الصكة.");
+        const resume = (res as { resume?: Record<string, unknown> | null }).resume;
+        if (resume && resume.matchId) {
+          const matchId = String(resume.matchId);
+          const moves: { k: number; seat: number; body: Record<string, unknown> }[] = [];
+          for (let guard = 0; guard < 20; guard += 1) {
+            const page = await pullMoves({ data: { matchId, since: moves.length ? moves[moves.length - 1].k : -1 } });
+            if (!page.ok || !page.moves.length) break;
+            moves.push(...page.moves);
+            if (page.moves.length < 400) break;
+          }
+          startSync({ ...resume, matchId, topic: String(resume.topic || "") }, moves);
+          setNote("رجعت لمقعدك في نفس الصكة.");
         } else {
-          setNote("الصكة قائمة. إذا انقطعت عند صاحب الطاولة، يرجّع الديوانية.");
+          setNote("الصكة قائمة الحين. انتظر الجاية أو ادخل غرفة ثانية.");
         }
       }
       return res.room.code;
@@ -931,6 +990,68 @@ export function QaydShell() {
       roomRef.current = null;
     }
   }
+
+  // A refresh in the middle of a match: go back to the same table and seat.
+  useEffect(() => {
+    if (!user || codeRef.current) return;
+    let saved: { code?: string } | null = null;
+    try { saved = JSON.parse(sessionStorage.getItem("qayd-match") || "null") as { code?: string } | null; } catch { saved = null; }
+    if (saved?.code) void enter(String(saved.code));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!syncMatch || !user) return;
+    const { matchId, topic } = syncMatch;
+    let stop = false;
+    let instant = false;
+    let cleanup: (() => void) | null = null;
+    const deliver = (moves: { k: number; seat: number; body: Record<string, unknown> }[]) => {
+      const sync = syncRef.current;
+      if (!sync || sync.matchId !== matchId || !moves.length) return;
+      for (const m of moves) if (m.k === sync.have + 1) sync.have = m.k;
+      tell({ cmd: "sync-moves", matchId, moves });
+    };
+    const pull = async () => {
+      const sync = syncRef.current;
+      if (!sync || sync.matchId !== matchId) return;
+      const res = await pullMoves({ data: { matchId, since: sync.have } });
+      if (res.ok) deliver(res.moves);
+    };
+    // Realtime brings each move in a fraction of a second; pulling covers gaps and phones without it.
+    void (async () => {
+      try {
+        const cfg = topic ? await movesConfig() : null;
+        if (!cfg || stop) return;
+        const { createClient } = await import("@supabase/supabase-js");
+        const client = createClient(cfg.url, cfg.key, { auth: { persistSession: false, autoRefreshToken: false } });
+        const channel = client.channel(topic, { config: { broadcast: { self: true } } });
+        channel.on("broadcast", { event: "m" }, (msg) => {
+          const moves = (msg.payload as { moves?: { k: number; seat: number; body: Record<string, unknown> }[] })?.moves || [];
+          const sync = syncRef.current;
+          if (sync && moves.some((m) => m.k > sync.have + 1)) void pull().catch(() => undefined);
+          deliver(moves);
+        });
+        channel.subscribe((status) => { instant = status === "SUBSCRIBED"; });
+        cleanup = () => { void client.removeChannel(channel); };
+        if (stop) cleanup();
+      } catch {
+        /* pulling still works */
+      }
+    })();
+    let timer = 0;
+    const loop = async () => {
+      try { await pull(); } catch { /* next round */ }
+      if (stop) return;
+      timer = window.setTimeout(() => void loop(), instant ? 2500 : 350);
+    };
+    void loop();
+    return () => {
+      stop = true;
+      window.clearTimeout(timer);
+      if (cleanup) cleanup();
+    };
+  }, [syncMatch?.matchId, user?.id]);
 
   useEffect(() => {
     if (!user?.displayName || !src) return;
