@@ -11097,5 +11097,183 @@ html #gm.on #tb > #say { white-space: normal !important; text-overflow: clip !im
 html #mn.home-next { display: flex; flex-direction: column; min-height: 100%; }
 html #mn.home-next #nv { margin-top: auto; }
 </style>
+<style id="qayd-v9">
+/* ============================================================================
+   v9 — play screen redesign. A white lacquered baloot board with a blue velvet
+   playing pad, four velvet arm rests and four steel cups, on a quiet night scene.
+   Loaded last; only looks change. Layout, ids and card motion are untouched.
+   ============================================================================ */
+html body #gm.on {
+  --v9-ink: #f3f6fa; --v9-muted: #a9b6c4; --v9-glass: rgba(13, 19, 27, .84); --v9-glass-2: rgba(255, 255, 255, .06);
+  --v9-line: rgba(255, 255, 255, .12); --v9-gold: #e3bd6a; --v9-us: #34c27f; --v9-them: #ef5d6f; --v9-blue: #2b56b5;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 42%, rgba(73, 112, 196, .22), transparent 70%),
+    radial-gradient(ellipse 140% 90% at 50% 40%, #233142 0%, #151d28 55%, #0b1017 100%) !important;
+}
+html[data-theme="light"] body #gm.on {
+  --v9-ink: #18222e; --v9-muted: #5b6878; --v9-glass: rgba(255, 255, 255, .9); --v9-glass-2: rgba(16, 32, 56, .05); --v9-line: rgba(16, 32, 56, .12);
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 42%, rgba(73, 112, 196, .16), transparent 70%),
+    radial-gradient(ellipse 140% 90% at 50% 40%, #eef2f7 0%, #dfe6ee 60%, #cfd8e2 100%) !important;
+}
+
+/* ---------- the board ---------- */
+html body #gm #tw #rug {
+  --u: calc(var(--table-w, 320px) / 100);
+  --table-logo: #ffffff; --table-logo-opacity: .1;
+  background:
+    radial-gradient(ellipse 70% 40% at 30% 8%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 70%),
+    linear-gradient(158deg, #ffffff 0%, #f5f7f9 38%, #e7ebef 78%, #dde2e7 100%) !important;
+  border: 0 !important;
+  border-radius: 10% / 8.4% !important;
+  box-shadow:
+    0 0 0 calc(var(--u) * .7) #e2bf8c,
+    0 0 0 calc(var(--u) * 1.15) #b98a52,
+    0 calc(var(--u) * 2.6) calc(var(--u) * 3.4) rgba(0, 0, 0, .42),
+    0 calc(var(--u) * 6) calc(var(--u) * 9) rgba(0, 0, 0, .38),
+    inset 0 calc(var(--u) * .35) calc(var(--u) * .6) rgba(255, 255, 255, .95),
+    inset 0 calc(var(--u) * -.7) calc(var(--u) * 1.6) rgba(70, 82, 96, .2) !important;
+}
+html body #gm #tw #rug .table-shell { border-radius: inherit !important; }
+html body #gm #tw #rug .table-shell::after { display: none !important; }
+
+/* Blue velvet playing pad. */
+html body #gm #tw #rug .table-shell::before {
+  inset: 17% 15.5% !important;
+  border: 0 !important;
+  border-radius: calc(var(--u) * 5.5) !important;
+  background-color: #23479c !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(118deg, transparent 22%, rgba(255, 255, 255, .09) 34%, transparent 47%),
+    linear-gradient(62deg, transparent 50%, rgba(255, 255, 255, .07) 61%, transparent 73%),
+    linear-gradient(140deg, transparent 64%, rgba(0, 0, 0, .12) 80%, transparent 92%),
+    radial-gradient(ellipse 85% 75% at 50% 40%, #3a68c9 0%, #27509f 50%, #1b3a7c 100%) !important;
+  background-size: 180px 180px, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
+  background-blend-mode: soft-light, normal, normal, normal, normal !important;
+  box-shadow:
+    inset 0 calc(var(--u) * .5) calc(var(--u) * 1) rgba(255, 255, 255, .22),
+    inset 0 calc(var(--u) * -1) calc(var(--u) * 2) rgba(5, 15, 45, .45),
+    0 calc(var(--u) * .9) calc(var(--u) * 1.4) rgba(12, 28, 70, .32),
+    0 0 0 calc(var(--u) * .2) rgba(14, 34, 82, .3) !important;
+}
+
+/* Four plush arm rests. */
+html body #gm #tw #rug .table-rest {
+  border: 0 !important;
+  transform: none !important;
+  border-radius: 999px !important;
+  background-color: #24489d !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 70% 120% at 50% 20%, #4a78d8 0%, #2a54aa 45%, #1a3576 100%) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  background-blend-mode: soft-light, normal !important;
+  box-shadow:
+    inset 0 calc(var(--u) * .45) calc(var(--u) * .7) rgba(255, 255, 255, .28),
+    inset 0 calc(var(--u) * -.6) calc(var(--u) * 1) rgba(5, 15, 45, .5),
+    0 calc(var(--u) * .7) calc(var(--u) * 1.1) rgba(10, 24, 60, .35) !important;
+}
+html body #gm #tw #rug .table-rest::after { display: none !important; }
+html body #gm #tw #rug .table-rest.top,
+html body #gm #tw #rug .table-rest.bottom { left: 20% !important; width: 60% !important; height: 7.2% !important; }
+html body #gm #tw #rug .table-rest.top { top: 4.4% !important; bottom: auto !important; }
+html body #gm #tw #rug .table-rest.bottom { bottom: 4.4% !important; top: auto !important; }
+html body #gm #tw #rug .table-rest.left,
+html body #gm #tw #rug .table-rest.right { top: 20.5% !important; height: 59% !important; width: 7.6% !important; }
+html body #gm #tw #rug .table-rest.left { left: 4% !important; right: auto !important; }
+html body #gm #tw #rug .table-rest.right { right: 4% !important; left: auto !important; }
+
+/* Steel cup holders in the corners. */
+html body #gm #tw #rug .table-cup {
+  width: 10.5% !important; height: auto !important; aspect-ratio: 1 !important;
+  border: 0 !important; border-radius: 50% !important;
+  background: conic-gradient(from 30deg, #f4f6f8, #9aa3ad 18%, #e9edf1 34%, #7f8994 52%, #f2f4f6 68%, #a6afb8 84%, #f4f6f8) !important;
+  box-shadow: 0 calc(var(--u) * .35) calc(var(--u) * .6) rgba(0, 0, 0, .35), inset 0 0 0 calc(var(--u) * .25) rgba(255, 255, 255, .7) !important;
+}
+html body #gm #tw #rug .table-cup::before {
+  inset: 17% !important; border: 0 !important;
+  background:
+    radial-gradient(ellipse 45% 30% at 38% 30%, rgba(255, 255, 255, .85), transparent 70%),
+    radial-gradient(circle at 55% 65%, #c9d0d7 0%, #8d96a0 45%, #5b646e 80%, #3f464e 100%) !important;
+  box-shadow: inset 0 calc(var(--u) * .4) calc(var(--u) * .7) rgba(0, 0, 0, .55), inset 0 calc(var(--u) * -.2) calc(var(--u) * .3) rgba(255, 255, 255, .4) !important;
+}
+html body #gm #tw #rug .table-cup.tl { top: 3.4% !important; left: 3.4% !important; }
+html body #gm #tw #rug .table-cup.tr { top: 3.4% !important; right: 3.4% !important; left: auto !important; }
+html body #gm #tw #rug .table-cup.bl { bottom: 3.4% !important; left: 3.4% !important; top: auto !important; }
+html body #gm #tw #rug .table-cup.br { bottom: 3.4% !important; right: 3.4% !important; top: auto !important; left: auto !important; }
+
+/* ---------- header: score and round ---------- */
+html body #gm.on #hud {
+  background: linear-gradient(180deg, rgba(8, 12, 18, .92), rgba(8, 12, 18, .55)) !important;
+  border-bottom: 1px solid var(--v9-line) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .3) !important;
+  backdrop-filter: blur(10px);
+}
+html[data-theme="light"] body #gm.on #hud { background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(255, 255, 255, .78)) !important; }
+html body #gm.on #hud .sc > div {
+  background: var(--v9-glass-2) !important; border: 1px solid var(--v9-line) !important; border-radius: 14px !important;
+  color: var(--v9-muted) !important; position: relative; overflow: hidden;
+}
+html body #gm.on #hud .sc > div:first-child { box-shadow: inset 0 3px 0 var(--v9-us) !important; }
+html body #gm.on #hud .sc > div:last-child { box-shadow: inset 0 3px 0 var(--v9-them) !important; }
+html body #gm.on #hud .sc > div b { color: var(--v9-ink) !important; font-variant-numeric: tabular-nums; }
+html body #gm.on #hud #ri { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+html body #gm.on #hud #ri .roundlabel { color: var(--v9-muted) !important; }
+html body #gm.on #hud #md { color: var(--v9-gold) !important; }
+html[data-theme="light"] body #gm.on #hud #md { color: #1d4fb0 !important; }
+html body #gm.on #hud .ib {
+  background: var(--v9-glass-2) !important; border: 1px solid var(--v9-line) !important; color: var(--v9-ink) !important; border-radius: 50% !important;
+}
+
+/* ---------- seats ---------- */
+html body #gm.on #tw .seat .av {
+  background: #f6f8fb !important; border: 2px solid rgba(255, 255, 255, .9) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .45), 0 0 0 1px rgba(0, 0, 0, .25) !important;
+}
+html body #gm.on #tw .seat .nm {
+  background: var(--v9-glass) !important; color: var(--v9-ink) !important; border: 1px solid var(--v9-line) !important;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .35) !important; backdrop-filter: blur(6px);
+}
+html body #gm.on #tw .seat .nm small { color: var(--v9-muted) !important; background: transparent !important; }
+html body #gm.on #tw .seat .bub {
+  background: #ffffff !important; color: #14202e !important; border: 0 !important; font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .35) !important;
+}
+
+/* ---------- bottom dock ---------- */
+html body #gm.on #panel {
+  background: linear-gradient(180deg, rgba(14, 20, 28, .9), rgba(7, 10, 15, .98)) !important;
+  border-top: 1px solid var(--v9-line) !important;
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(227, 189, 106, .25) !important;
+  backdrop-filter: blur(12px);
+}
+html[data-theme="light"] body #gm.on #panel { background: linear-gradient(180deg, rgba(255, 255, 255, .94), rgba(244, 247, 250, .99)) !important; box-shadow: 0 -10px 26px rgba(16, 32, 56, .14) !important; }
+html body #gm.on #panel #me { background: var(--v9-glass-2) !important; border: 1px solid var(--v9-line) !important; border-radius: 16px !important; }
+html body #gm.on #panel #mn2 { color: var(--v9-ink) !important; }
+html body #gm.on #act button {
+  min-height: 46px; border-radius: 14px !important; font-weight: 800 !important; letter-spacing: 0;
+  background: linear-gradient(180deg, #3563c6, #23479a) !important; color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, .14) !important; box-shadow: 0 4px 12px rgba(14, 34, 82, .45), inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+}
+html body #gm.on #act button:active { transform: translateY(1px) scale(.99); }
+html body #gm.on #act button.bid-pass { background: linear-gradient(180deg, #4a5563, #343d48) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .14) !important; }
+html body #gm.on #act button.bid-sun { background: linear-gradient(180deg, #f0cd7c, #d5a64a) !important; color: #2b1d05 !important; }
+html body #gm.on #act button.bid-hokm { background: linear-gradient(180deg, #3563c6, #23479a) !important; }
+html body #gm.on #act button.bid-raise { background: linear-gradient(180deg, #e2566a, #b8364b) !important; }
+html body #gm.on #prow .pbtn,
+html body #gm.on #prow #slam-btn,
+html body #gm.on #prow #ctr {
+  background: var(--v9-glass-2) !important; color: var(--v9-ink) !important; border: 1px solid var(--v9-line) !important; box-shadow: none !important;
+}
+html body #gm.on #prow #slam-btn.on { background: linear-gradient(180deg, #e2566a, #b8364b) !important; color: #fff !important; }
+html body #gm.on #prow #akk-button.selected { background: var(--v9-gold) !important; color: #2b1d05 !important; }
+
+/* Cards in hand sit on a soft shadow so they read against the dark dock. */
+html body #gm.on #hand .cd { box-shadow: 0 6px 16px rgba(0, 0, 0, .42), 0 1px 0 rgba(255, 255, 255, .6) inset; }
+
+/* Table notices: a crisp white pill over the velvet. */
+html body #gm.on #tb > #say { background: rgba(255, 255, 255, .96) !important; color: #14202e !important; border: 0 !important; box-shadow: 0 8px 22px rgba(0, 0, 0, .35) !important; }
+</style>
 </body>
 </html>

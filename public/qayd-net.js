@@ -785,6 +785,9 @@
     R.floor = view.floor ? { s: view.floor.s, r: view.floor.r } : null;
     if (R.myTurn && guestNeed) {
       if (!pending) armCardPending(guestNeed);
+      // Redraw now that it is our turn and the trick is current: this lights the legal cards
+      // (limited mode) and makes a tap on a forbidden card shake instead of being replaced by the host.
+      try { renderHand(); } catch (e) { /* art not ready */ }
     } else if (!(guestNeed && guestNeed.kind === "bid")) pending = null;
   }
   function applyChrome(view) {
