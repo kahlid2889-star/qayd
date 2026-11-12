@@ -21,20 +21,28 @@ const LENGTHS = [61, 101, 152];
 const STAKES = [0, 100, 500, 1000, 2500];
 
 /** The three looks of the table. The panels follow whichever one the player picked in the game's settings. */
-// One "night majlis" look across the game and its windows: navy, brass gold, ivory.
-const NIGHT: Record<string, string> = {
-    "--q-bg": "#0A111F", "--q-surface": "#0F1828", "--q-card": "rgba(255, 255, 255, 0.05)", "--q-input": "#0A111F", "--q-ink": "#F4EFE5",
-    "--q-muted": "#A6B1C4", "--q-line": "rgba(255, 255, 255, 0.12)", "--q-primary": "#E6BE6A", "--q-primary-ink": "#1D1405",
-    "--q-accent": "#E9C477", "--q-gold": "#E6BE6A", "--q-error": "#FF8C9B", "--q-ok": "#5AD6A0",
-  };
 const PALETTES: Record<string, Record<string, string>> = {
-  trad: NIGHT,
-  dark: NIGHT,
-  light: {
-    "--q-bg": "#F6F2EA", "--q-surface": "#FFFFFF", "--q-card": "#F6F2EA", "--q-input": "#FFFFFF", "--q-ink": "#121A2B",
-    "--q-muted": "#5A6478", "--q-line": "rgba(16, 26, 46, 0.14)", "--q-primary": "#C9963F", "--q-primary-ink": "#1D1405",
-    "--q-accent": "#8A6220", "--q-gold": "#C9963F", "--q-error": "#B3263E", "--q-ok": "#1E7A52",
+  trad: {
+    "--q-bg": "#F3E8D4", "--q-surface": "#FFF8EB", "--q-card": "#F3E8D4", "--q-input": "#FFFFFF", "--q-ink": "#39271F",
+    "--q-muted": "#927D6C", "--q-line": "#D6C1A1", "--q-primary": "#681F32", "--q-primary-ink": "#FFF8EB",
+    "--q-accent": "#681F32", "--q-gold": "#B89558", "--q-error": "#9D3048", "--q-ok": "#2F6B45",
   },
+  dark: {
+    "--q-bg": "#101820", "--q-surface": "#18232D", "--q-card": "#222F3B", "--q-input": "#101820", "--q-ink": "#F4F6F8",
+    "--q-muted": "#A4B0BA", "--q-line": "#34414C", "--q-primary": "#20A783", "--q-primary-ink": "#101820",
+    "--q-accent": "#E0B85C", "--q-gold": "#E0B85C", "--q-error": "#FFB4B4", "--q-ok": "#8ED9B0",
+  },
+  light: {
+    "--q-bg": "#F7F9FC", "--q-surface": "#FFFFFF", "--q-card": "#EEF2F5", "--q-input": "#FFFFFF", "--q-ink": "#202D3A",
+    "--q-muted": "#89939E", "--q-line": "#E1E7EC", "--q-primary": "#16866A", "--q-primary-ink": "#FFFFFF",
+    "--q-accent": "#16866A", "--q-gold": "#D6AD59", "--q-error": "#A0243B", "--q-ok": "#16866A",
+  },
+};
+
+// The traditional sheet is dark maroon, so its cards and text need dark-sheet colours.
+const TRAD_SHEET: Record<string, string> = {
+  "--q-card": "rgba(246, 234, 215, 0.07)", "--q-ink": "#F6EAD7", "--q-muted": "#C9B59A",
+  "--q-line": "rgba(224, 196, 138, 0.32)", "--q-input": "#14080C", "--q-accent": "#F0D48A", "--q-error": "#FF9DB0",
 };
 
 function readTheme(): string {
@@ -1128,7 +1136,7 @@ export function QaydShell() {
         <div className="fixed inset-0 z-20 flex items-end justify-center bg-[#0c0608]/78" onClick={() => void leaveLobby()}>
           <section
             className="qayd-sheet max-h-[92dvh] w-full overflow-auto rounded-t-[28px] px-5 pt-3 pb-[max(20px,env(safe-area-inset-bottom))] text-[var(--q-ink)] sm:max-w-md sm:mb-6 sm:rounded-[28px] sm:border-b"
-            style={PALETTES[theme] as CSSProperties}
+            style={(theme === "trad" ? { ...PALETTES.trad, ...TRAD_SHEET } : PALETTES[theme]) as CSSProperties}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-label={panel === "online" ? TITLE : panel === "friends" ? "الأصدقاء" : "الحساب"}
