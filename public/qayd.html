@@ -11549,6 +11549,14 @@ html #ob.qaid-catch .qc-go { flex: none; width: 100%; min-height: 52px !importan
 html #ob.qaid-catch .qc-go.ready { opacity: 1; }
 html #ob.qaid-catch .qc-go:active { transform: scale(.985); }
 html #ob.qc-watch .qc-close { display: none !important; }
+@media (max-width: 360px) {
+  html #ob.qaid-catch .qc-cross { height: 128px !important; }
+  html #ob.qaid-catch .qc-slot { width: 34px !important; height: 47px !important; }
+  html #ob.qaid-catch .qc-slot .cd { --cw: 34px !important; }
+  html #ob.qaid-catch .qc-slot.pos-top, html #ob.qaid-catch .qc-slot.pos-bot { left: calc(50% - 17px) !important; }
+  html #ob.qaid-catch .qc-slot.pos-right { right: 6px !important; top: calc(50% - 23px) !important; }
+  html #ob.qaid-catch .qc-slot.pos-left { left: 6px !important; top: calc(50% - 23px) !important; }
+}
 #qayd-board .pad-glow { opacity: 0; transition: opacity .15s ease; fill: #fff; }
 </style>
 <script>

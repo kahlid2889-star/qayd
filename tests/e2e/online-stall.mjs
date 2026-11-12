@@ -58,13 +58,13 @@ await [A, B, C][lead].gf().evaluate(() => { QaidSync.stepInAfter = QaidSync.__re
 
 // B. slow network for one guest
 const slow = [A, B, C][(lead + 1) % 3];
-await slow.page.route("**/_serverFn/**", async (route) => { await new Promise((r) => setTimeout(r, 700)); await route.continue(); });
+await slow.page.route("**/_serverFn/**", async (route) => { await new Promise((r) => setTimeout(r, 700)); await route.continue().catch(() => {}); });
 await part("B (slow guest)", [A, B, C]);
-await slow.page.unroute("**/_serverFn/**");
+await slow.page.unroute("**/_serverFn/**", { behavior: "ignoreErrors" });
 
 // C. half of one guest's move uploads fail
 const flaky = [A, B, C][(lead + 2) % 3]; let dropped = 0;
-await flaky.page.route("**/_serverFn/**", async (route) => { const body = route.request().postData() || ""; if (/"k":\d+/.test(body) && /"body"/.test(body) && Math.random() < .5) { dropped++; return route.abort(); } await route.continue(); });
+await flaky.page.route("**/_serverFn/**", async (route) => { const body = route.request().postData() || ""; if (body.includes("matchId") && body.includes("seat") && body.includes("body") && Math.random() < .5) { dropped++; return route.abort().catch(() => {}); } await route.continue().catch(() => {}); });
 await part("C (lost uploads)", [A, B, C]);
 check("C: uploads were really dropped", dropped > 0, `${dropped} dropped`);
 const errors = [...A.errors, ...B.errors, ...C.errors];
