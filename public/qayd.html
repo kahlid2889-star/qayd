@@ -5999,7 +5999,7 @@ function bidTone(value) {
 }
 function log(text) { if (R) R.log.unshift(text); }
 function show(id) { document.querySelectorAll('.scr:not(#sp)').forEach(s => s.classList.toggle('on', s.id === id)); }
-function ov(html) { $('#ob').innerHTML = html; $('#ov').classList.add('on'); }
+function ov(html) { const ob=$('#ob'); ob.classList.remove('qaid-catch','qc-watch'); delete ob.dataset.qaydSig; ob.innerHTML = html; $('#ov').classList.add('on'); }
 function closeOv() { stopQaidClock(); const ob=$('#ob'); if(ob){ ob.classList.remove('qaid-catch','qc-watch'); delete ob.dataset.qaydSig; } $('#ov').classList.remove('on'); }
 function center(el) { const r = el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
 const hk = () => R && R.mode === 'hokm';
@@ -6135,8 +6135,8 @@ function renderSeats(changedPlayer=null) {
     const profile=botAt(p),name=$('#s'+p+' .nm');name.textContent=profile.name;
     const small=document.createElement('small');
     if(p===2)small.textContent='خويّك';
-    else if(SYNC()&&QaidSync.person(p))small.textContent='الخصم';
     else{const rk=seatRankCard(p);small.className='seat-level';small.textContent=rk.rankTitle?(rk.rankTitle+(rk.glyph?' '+rk.glyph:'')):'الخصم';small.title='المستوى: '+rk.label;}
+    if(p===2&&SYNC()&&QaidSync.person(2)){const rk=seatRankCard(2);if(rk.rankTitle){small.className='seat-level';small.textContent='خويّك · '+rk.rankTitle;}}
     name.append(small);
     name.classList.toggle('buyer',p===bidder&&!!purchase);
     if(p===bidder&&purchase){const contract=document.createElement('em');contract.className='bot-contract';contract.textContent=purchase;contract.title='المشتري: '+profile.name+' — '+purchase;name.append(contract);}
@@ -6317,6 +6317,7 @@ function assignHandBots() {
 function seatRankCard(player) {
   let info;
   if(player===0 && window.QaidRank) info=QaidRank.current();
+  else if(SYNC() && QaidSync.person(player) && window.QaidRank) info=QaidRank.stageInfo(QaidSync.stageOf(player));
   else {
     const profile=botAt(player);
     const stage=profile&&profile.skill==='novice'?4:profile&&profile.skill==='medium'?12:profile&&profile.skill==='ten'?16:24;
@@ -7481,6 +7482,7 @@ function qaydPublish(open, picks, extra) {
     locked: false
   }, extra || {}) : null;
   if (typeof R !== 'undefined' && R) R.qaydWatch = state;
+  if (SYNC() && !(extra && extra.locked)) QaidSync.watch(state);
   try { if (window.QaidNet && QaidNet.role === 'host' && QaidNet.pulse) QaidNet.pulse(); } catch (e) { /* local */ }
 }
 function qaydPilesFrom(snapshot) {

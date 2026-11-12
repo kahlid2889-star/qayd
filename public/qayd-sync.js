@@ -76,6 +76,40 @@
     const rank = Math.max(0, aliveSeats().indexOf(S.you));
     return rank === 0 ? 0 : 9000 + (rank - 1) * 5000;
   };
+  /* A real player's level (from the server), for his name plate and the lineup card. */
+  S.stageOf = (l) => (S.person(l) ? S.stages[l2g(l)] || 0 : null);
+
+  /* ---------- the qayd window, live for the whole table ---------- */
+  const pidTurn = (pid, turn) => {
+    const a = String(pid || "").split(":");
+    return a.length === 4 ? [a[0], turn(Number(a[1])), a[2], a[3]].join(":") : "";
+  };
+  S.watch = function (state) {
+    if (!S.on) return;
+    const body = state && state.open
+      ? { open: true, n: ++S.watchOut, name: S.names[S.you] || "", kind: state.kind || "", reveal: pidTurn(state.reveal, l2g), cheat: pidTurn(state.cheat, l2g) }
+      : { open: false, n: ++S.watchOut };
+    net.post({ type: "sync-watch", matchId: S.matchId, body });
+  };
+  function watched(body) {
+    if (!S.on || !body || typeof qaydSpectate !== "function") return;
+    const g = Number(body.seat);
+    if (!(g >= 0 && g <= 3) || g === S.you) return;
+    const n = Number(body.n) || 0;
+    if (n <= (S.watchIn[g] || 0)) return; /* an older copy arriving late */
+    S.watchIn[g] = n;
+    const seat = g2l(g);
+    const state = body.open && R && R.phase === "play" && R.turn === seat
+      ? { open: true, seat, name: S.names[g] || "", kind: String(body.kind || ""), reveal: pidTurn(body.reveal, g2l), cheat: pidTurn(body.cheat, g2l), locked: false }
+      : null;
+    if (R) R.qaydWatch = state;
+    try { qaydSpectate(state, null); } catch (e) { /* overlay */ }
+  }
+  S.unwatch = function () {
+    if (R) R.qaydWatch = null;
+    try { if (typeof qaydSpectate === "function") qaydSpectate(null, null); } catch (e) { /* overlay */ }
+  };
+
   S.firstDealer = () => g2l(Math.abs(Number(S.seed) || 0) % 4);
   S.cast = function () {
     const base = QaidBots.cast("sultan", null, rng(S.seed));
@@ -256,6 +290,7 @@
       },
     });
     if (local !== undefined) return local;
+    S.unwatch(); /* his move is in: nobody is picking any more */
     if (body.none) return null;
     if (body.sw) return { sawa: true, net: true };
     if (body.q) return { qayd: picksOut(body.q, false), net: true };
@@ -339,10 +374,14 @@
     S.seed = Number(data.seed) || 1;
     S.persons = new Set();
     S.names = {};
+    S.stages = {};
+    S.watchOut = 0;
+    S.watchIn = {};
     (data.seats || []).forEach((s) => {
       if (!s || s.seat == null) return;
       S.persons.add(Number(s.seat));
       S.names[Number(s.seat)] = String(s.name || "لاعب").slice(0, 14);
+      S.stages[Number(s.seat)] = Math.max(0, Math.min(32, Math.floor(Number(s.stage) || 0)));
     });
     S.persons.add(S.you);
     S.online = null;
@@ -400,6 +439,7 @@
     if (!data || data.source !== "qayd-shell") return;
     if (data.cmd === "sync-start") S.begin(data);
     else if (data.cmd === "sync-moves") { if (S.on && data.matchId === S.matchId) feed(data.moves); }
+    else if (data.cmd === "sync-watch") { if (S.on && data.matchId === S.matchId) watched(data.body); }
     else if (data.cmd === "sync-online") {
       if (S.on) S.online = new Set((data.seats || []).map(Number));
     }

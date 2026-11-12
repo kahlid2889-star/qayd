@@ -563,10 +563,18 @@ export const syncRoom = createServerFn({ method: "POST" })
           values (${matchId}, ${m.userId}, ${Number(m.seat)})
           on conflict (match_id, user_id) do nothing`;
       }
+      // Each player's real level travels with the start, so every phone shows it on his name plate.
+      const stages = new Map<string, number>();
+      for (const m of humans) {
+        const rows = await sql<{ xp_total: number | null; data: unknown }>`
+          select xp_total, data from qayd_profiles where user_id = ${m.userId}`;
+        const xp = rows[0] ? (rows[0].xp_total == null ? startingXp(asObject(rows[0].data)) : Number(rows[0].xp_total)) : 0;
+        stages.set(m.userId, levelFromXp(xp));
+      }
       const body = {
         seed: now,
         matchId,
-        seats: humans.map((m) => ({ userId: m.userId, seat: m.seat, name: m.name })),
+        seats: humans.map((m) => ({ userId: m.userId, seat: m.seat, name: m.name, stage: stages.get(m.userId) ?? 0 })),
         settings: before.settings,
         topic: await movesTopic(matchId),
       };
@@ -587,7 +595,12 @@ export const syncRoom = createServerFn({ method: "POST" })
         if (!["view", "need", "act", "over", "adopt", "sync", "qayd-watch"].includes(kind)) continue;
         let toUser = item.toUser ? String(item.toUser).slice(0, 80) : null;
         let body = asObject(item.body);
-        if (kind === "act" || kind === "sync" || kind === "qayd-watch") {
+        if (kind === "qayd-watch") {
+          // A player picking cards in the qayd window: the whole table watches. The server stamps his seat.
+          if (mySeat == null) continue;
+          toUser = null;
+          body = { ...body, seat: mySeat };
+        } else if (kind === "act" || kind === "sync") {
           // A move, and a request for the current table, only travel guest -> host.
           // The server stamps the sender's seat so nobody can play another hand
           // or pull a snapshot for a seat they do not occupy.

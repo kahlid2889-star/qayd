@@ -456,6 +456,8 @@ export function QaydShell() {
   /* The online match this page carries moves for (every phone runs the same table). */
   const [syncMatch, setSyncMatch] = useState<{ matchId: string; topic: string } | null>(null);
   const syncRef = useRef<{ matchId: string; have: number; online: string; awayNames: string; seats: { seat: number; name: string }[] } | null>(null);
+  /* Sends a small live message (not a move) straight to the other phones when the instant channel is up. */
+  const liveSendRef = useRef<((body: Record<string, unknown>) => void) | null>(null);
   const endSync = () => {
     syncRef.current = null;
     setSyncMatch(null);
@@ -677,6 +679,15 @@ export function QaydShell() {
         send(0);
         return;
       }
+      if (data.type === "sync-watch") {
+        // What a player is picking in the qayd window: instant channel when there is one, room mail always.
+        const body = (data as unknown as { body?: Record<string, unknown> }).body || {};
+        const mine = roomRef.current?.members.find((m) => m.userId === user?.id);
+        if (!user || !syncRef.current || mine?.seat == null) return;
+        liveSendRef.current?.({ ...body, seat: mine.seat });
+        outboxRef.current.push({ kind: "qayd-watch", toUser: null, body });
+        return;
+      }
       if (data.type === "xp") {
         const req = Number(data.req);
         if (!user) {
@@ -875,7 +886,10 @@ export function QaydShell() {
       if (kind === "need") tell({ cmd: "need", id: body.id, kind: body.kind, options: body.options });
       if (kind === "sync") tell({ cmd: "sync", seat: Number(body.seat) });
       if (kind === "act") tell({ cmd: "act", id: body.id, action: body.action, seat: body.seat });
-      if (kind === "qayd-watch") tell({ cmd: "qayd-watch", body });
+      if (kind === "qayd-watch") {
+        if (syncRef.current) tell({ cmd: "sync-watch", matchId: syncRef.current.matchId, body });
+        else tell({ cmd: "qayd-watch", body });
+      }
       if (kind === "drop") tell({ cmd: "drop", seat: Number(body.seat) });
       if (kind === "adopt") tell({ cmd: "adopt", seat: Number(body.seat), name: String(body.name || "") });
       if (kind === "over" && syncRef.current) return;
@@ -1037,8 +1051,12 @@ export function QaydShell() {
           if (sync && moves.some((m) => m.k > sync.have + 1)) void pull().catch(() => undefined);
           deliver(moves);
         });
+        channel.on("broadcast", { event: "w" }, (msg) => {
+          tell({ cmd: "sync-watch", matchId, body: (msg.payload as Record<string, unknown>) || {} });
+        });
         channel.subscribe((status) => { instant = status === "SUBSCRIBED"; });
-        cleanup = () => { void client.removeChannel(channel); };
+        liveSendRef.current = (body) => { if (instant) void channel.send({ type: "broadcast", event: "w", payload: body }); };
+        cleanup = () => { liveSendRef.current = null; void client.removeChannel(channel); };
         if (stop) cleanup();
       } catch {
         /* pulling still works */
