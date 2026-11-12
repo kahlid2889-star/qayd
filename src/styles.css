@@ -24,12 +24,13 @@ body {
 .qayd-sheet {
   position: relative;
   background:
-    radial-gradient(120% 42% at 50% -10%, rgba(224, 196, 138, 0.22), transparent 46%),
-    linear-gradient(180deg, #4a2030 0%, #1a0c10 38%, #12080c 100%);
-  color: #f6ead7;
-  border: 1px solid rgba(224, 196, 138, 0.48);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='%23e6be6a' stroke-opacity='.06' stroke-width='1'%3E%3Cpath d='M36 6 66 36 36 66 6 36Z'/%3E%3Cpath d='M36 20 52 36 36 52 20 36Z'/%3E%3C/g%3E%3C/svg%3E") center top / 72px 72px repeat,
+    radial-gradient(120% 42% at 50% -10%, rgba(47, 98, 208, 0.22), transparent 46%),
+    linear-gradient(180deg, #121d33 0%, #0f1828 30%, #0a111f 100%);
+  color: #f4efe5;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom: 0;
-  box-shadow: 0 -28px 70px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 -28px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(230, 190, 106, 0.3);
 }
 
 .qayd-sheet::before {
@@ -41,42 +42,27 @@ body {
   height: 4px;
   margin: 0 auto 12px;
   border-radius: 99px;
-  background: rgba(224, 196, 138, 0.75);
+  background: rgba(230, 190, 106, 0.7);
 }
 
 .qayd-sheet h2 {
-  color: #f0d48a;
+  color: #e9c477;
 }
 
 .qayd-sheet input,
 .qayd-sheet textarea {
-  background: #14080c;
-  color: #f6ead7;
-  border-color: rgba(224, 196, 138, 0.4);
+  background: #0a111f;
+  color: #f4efe5;
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-[data-theme="dark"] .qayd-sheet {
-  background:
-    radial-gradient(120% 42% at 50% -10%, rgba(32, 167, 131, 0.22), transparent 46%),
-    linear-gradient(180deg, #1c3a34 0%, #101820 70%);
-  color: #f4f6f8;
-  border-color: rgba(224, 184, 92, 0.45);
-}
-[data-theme="dark"] .qayd-sheet::before { background: rgba(224, 184, 92, 0.8); }
-[data-theme="dark"] .qayd-sheet h2 { color: #e0b85c; }
-[data-theme="dark"] .qayd-sheet input,
-[data-theme="dark"] .qayd-sheet textarea {
-  background: #101820;
-  color: #f4f6f8;
-  border-color: #34414c;
-}
 [data-theme="light"] .qayd-sheet {
-  background: linear-gradient(180deg, #ffffff 0%, #eef2f5 100%);
-  color: #202d3a;
-  border-color: #d6ad59;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f2ea 100%);
+  color: #121a2b;
+  border-color: rgba(16, 26, 46, 0.14);
 }
-[data-theme="light"] .qayd-sheet::before { background: #d6ad59; }
-[data-theme="light"] .qayd-sheet h2 { color: #16866a; }
+[data-theme="light"] .qayd-sheet::before { background: #c9963f; }
+[data-theme="light"] .qayd-sheet h2 { color: #8a6220; }
 [data-theme="light"] .qayd-sheet input,
 [data-theme="light"] .qayd-sheet textarea {
   background: #ffffff;
@@ -84,3 +70,9 @@ body {
   border-color: #e1e7ec;
 }
 [data-theme="light"] .qayd-sheet input::placeholder { color: #89939e; }
+
+/* Night majlis: primary buttons are brass plates, like the game's main button. */
+.qayd-sheet [class*="bg-[var(--q-primary)]"] {
+  background-image: linear-gradient(180deg, #f6d68f 0%, #e3b65e 48%, #c9963f 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(120, 80, 20, 0.3), 0 10px 24px rgba(201, 150, 63, 0.22);
+}

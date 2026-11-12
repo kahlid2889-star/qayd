@@ -1,0 +1,26 @@
+import { chromium } from "playwright";
+const OUT = process.env.OUT || "screenshots/v10"; const THEME = process.env.THEME || "";
+import { mkdirSync } from "node:fs"; mkdirSync(OUT, { recursive: true });
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const page = await b.newPage({ viewport: { width: +(process.env.W || 390), height: +(process.env.H || 844) }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+const errs = []; page.on("pageerror", (e) => errs.push(String(e).slice(0, 150)));
+await page.goto("http://127.0.0.1:8080/qayd.html?testfast", { waitUntil: "load" }); await page.waitForTimeout(2500);
+if (THEME) { await page.evaluate((t) => theme(t), THEME); await page.waitForTimeout(400); }
+const shot = (n) => page.screenshot({ path: `${OUT}/${n}.png` });
+const until = async (fn, ms = 15000) => { const t = Date.now(); while (Date.now() - t < ms) { if (await page.evaluate(fn).catch(() => false)) return true; await page.waitForTimeout(200); } return false; };
+await shot("1-home");
+await page.evaluate(() => openLobby()); await page.waitForTimeout(600); await shot("2-lobby");
+await page.evaluate(() => document.querySelectorAll('.mod').forEach(e => e.classList.remove('on')));
+await page.evaluate(() => openSet()); await page.waitForTimeout(600); await shot("3-settings");
+await page.evaluate(() => { document.querySelectorAll('.mod').forEach(e => e.classList.remove('on')); });
+await page.evaluate(() => { cfg.stake = 0; startGame(); });
+await until(() => R && R.phase === "bid" && document.querySelectorAll("#act button").length > 0);
+await page.waitForTimeout(400); await shot("4-bid");
+await page.evaluate(() => { window.__a = setInterval(() => { try { if (document.querySelector("#ov").classList.contains("on")) return; if (R && pending) { if (R.phase === "play" && R.myTurn) resolvePending({ card: aiPick(0), from: center(document.querySelector("#hand")) }); else document.querySelector("#act button")?.click(); } } catch (e) {} }, 250); });
+await until(() => R && R.phase === "play" && R.trick.length >= 2, 30000); await shot("5-play");
+await until(() => R && R.phase === "play" && R.myTurn && pending, 30000);
+await page.evaluate(() => clearInterval(window.__a)); await page.waitForTimeout(300); await shot("6-myturn");
+await page.evaluate(() => { window.__a = setInterval(() => { try { if (document.querySelector("#ov").classList.contains("on")) return; if (R && pending) { if (R.phase === "play" && R.myTurn) resolvePending({ card: aiPick(0), from: center(document.querySelector("#hand")) }); else document.querySelector("#act button")?.click(); } } catch (e) {} }, 150); });
+await until(() => document.querySelector("#ov").classList.contains("on") && !!document.querySelector("#nx"), 120000);
+await page.waitForTimeout(500); await shot("7-result");
+console.log("errors", JSON.stringify(errs)); await b.close();
