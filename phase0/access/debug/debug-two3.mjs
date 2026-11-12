@@ -1,0 +1,11 @@
+import { newUser, localJwt, realtimeClient, sql, sleep, API } from "../common.mjs";
+const anon = await localJwt("anon"), service = await localJwt("service_role");
+const A = await newUser(1);
+function j(c, topic, counter, ms=5000) { return new Promise((res)=>{ const ch = c.channel(topic, { config:{ private:true } }); ch.on("broadcast",{event:"ev"},()=>counter.n++); const t=setTimeout(()=>res("TIMEOUT"),ms); ch.subscribe((s)=>{ if(["SUBSCRIBED","CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(s)){clearTimeout(t);res(s);} }); }); }
+async function bcast(code){ for (let n=0;n<5;n++){ await fetch(`${API}/realtime/v1/api/broadcast`, { method:"POST", headers:{ "content-type":"application/json", authorization:`Bearer ${service}`, apikey: service }, body: JSON.stringify({ messages: [`room:${code}:seat:0`,`room:${code}:table`].map(t=>({ topic:t, event:"ev", payload:{n}, private:true })) }) }); await sleep(60); } await sleep(1200); }
+async function trial(label, fn) { const code = "TW3" + Math.floor(Math.random()*900+100); await sql("insert into p0_members(code,user_id,seat) values($1,$2,0) on conflict (code,user_id) do nothing", [code, A.id]); const seat={n:0}, table={n:0}; const st = await fn(code, seat, table); await bcast(code); console.log(label.padEnd(54), "status", JSON.stringify(st), "| received seat/table of 5:", seat.n+"/"+table.n); }
+await trial("V1 setAuth once, join seat, re-setAuth, join table", async (c,s,t)=>{ const cl = await realtimeClient(anon, A.token); const a = await j(cl,`room:${c}:seat:0`,s); await cl.realtime.setAuth(A.token); const b = await j(cl,`room:${c}:table`,t); return [a,b]; });
+await trial("V3 setAuth once, join both in parallel", async (c,s,t)=>{ const cl = await realtimeClient(anon, A.token); return await Promise.all([j(cl,`room:${c}:seat:0`,s), j(cl,`room:${c}:table`,t)]); });
+await trial("V2 two sockets (one channel each)", async (c,s,t)=>{ const c1 = await realtimeClient(anon, A.token), c2 = await realtimeClient(anon, A.token); return [await j(c1,`room:${c}:seat:0`,s), await j(c2,`room:${c}:table`,t)]; });
+await trial("V4 ONE channel per player (seat topic only)", async (c,s,t)=>{ const cl = await realtimeClient(anon, A.token); return [await j(cl,`room:${c}:seat:0`,s)]; });
+process.exit(0);

@@ -1,0 +1,13 @@
+{
+  "name": "qayd-phase0",
+  "private": true,
+  "type": "module",
+  "description": "Phase 0 technical spikes for the server-authoritative online design. Not part of the game; nothing here is imported by it.",
+  "devDependencies": {
+    "deno": "^2.9.6",
+    "esbuild": "^0.28.2",
+    "postgres": "^4.1.1",
+    "supabase": "^3.1.0",
+    "ws": "^8.22.2"
+  }
+}

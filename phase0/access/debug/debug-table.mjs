@@ -1,0 +1,15 @@
+import { newUser, localJwt, realtimeClient, join, sql, sleep } from "../common.mjs";
+const anon = await localJwt("anon"); const code = "DBG" + Math.floor(Math.random()*900+100);
+const A = await newUser(1), B = await newUser(2);
+await sql("insert into p0_members(code,user_id,seat) values($1,$2,0),($1,$3,1)", [code, A.id, B.id]);
+const c1 = realtimeClient(anon, A.token);
+const t = await join(c1, `room:${code}:table`); console.log("table alone:", t.status, t.err);
+const c2 = realtimeClient(anon, A.token);
+const s = await join(c2, `room:${code}:seat:0`); console.log("seat alone:", s.status, s.err);
+const t2 = await join(c2, `room:${code}:table`); console.log("table after seat on same socket:", t2.status, t2.err);
+const msgs = []; const c3 = realtimeClient(anon, B.token);
+const a = await join(c3, `room:${code}:seat:1`, { deal: (p) => msgs.push(p) }); 
+const b = await join(c3, `room:${code}:table`, { dealt: (p) => msgs.push(p), table: (p)=>msgs.push(p) });
+console.log("two channels one socket:", a.status, b.status);
+await sql("select p0_deal($1)", [code]); await sleep(1200); console.log("received:", JSON.stringify(msgs).slice(0,200));
+process.exit(0);

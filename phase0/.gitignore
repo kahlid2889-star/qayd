@@ -1,0 +1,12 @@
+node_modules/
+# local test material: private test key, minted tokens, generated bundles/copies
+supabase/signing_keys.json
+supabase/functions/.env
+supabase/.temp/
+supabase/.branches/
+supabase/functions/_shared/engine.mjs
+supabase/functions/_shared/bench-bots.mjs
+supabase/functions/probe/index.js
+supabase/functions/probe/index.ts
+identity/last-run.json
+engine/engine.mjs
