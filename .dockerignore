@@ -1,0 +1,8 @@
+node_modules
+.output
+.vercel
+.git
+attachments
+screenshots
+.env
+*.zip

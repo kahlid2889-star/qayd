@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const browser = await chromium.launch({ headless: true });
+const page = await (await browser.newContext({ viewport: { width: 1100, height: 800 } })).newPage();
+page.on("pageerror", (e) => console.log("ERR", e.message));
+await page.goto("http://127.0.0.1:8080/", { waitUntil: "networkidle" });
+const frame = page.frameLocator("iframe");
+await frame.locator("#online-open").waitFor({ timeout: 20000 });
+console.log("nav ready", await frame.locator("#mn").getAttribute("class"));
+await frame.locator("#online-open").click();
+await page.waitForTimeout(1000);
+console.log("BODY", (await page.locator("body").innerText()).slice(0, 1500));
+await page.screenshot({ path: "/workspace/screenshots/guest-debug.png" });
+await browser.close();
