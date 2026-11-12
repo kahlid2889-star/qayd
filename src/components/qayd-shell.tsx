@@ -662,15 +662,19 @@ export function QaydShell() {
         const move = data as unknown as { matchId?: string; k?: number; seat?: number; body?: Record<string, unknown> };
         const matchId = String(move.matchId || "");
         if (!user || !matchId) return;
-        const send = (left: number) => {
+        // A move must never be lost: keep trying (slower each time) for as long as this match is on.
+        const send = (attempt: number) => {
+          if (syncRef.current?.matchId !== matchId) return;
+          const again = () => window.setTimeout(() => send(attempt + 1), Math.min(4000, 400 + attempt * 400));
           void pushMove({ data: { matchId, k: Number(move.k), seat: Number(move.seat), body: move.body || {} } })
             .then((res) => {
               if (res.ok && res.move) tell({ cmd: "sync-moves", matchId, moves: [res.move] });
-              else if (!res.ok && left > 0) window.setTimeout(() => send(left - 1), 800);
+              else if (!res.ok && attempt < 3) again();
+              else if (!res.ok) setNote(res.error || "تعذّر إرسال الحركة");
             })
-            .catch(() => { if (left > 0) window.setTimeout(() => send(left - 1), 800); });
+            .catch(again);
         };
-        send(6);
+        send(0);
         return;
       }
       if (data.type === "xp") {
@@ -718,6 +722,7 @@ export function QaydShell() {
     let stop = false;
     const tick = async () => {
       if (stop || detachedRef.current) return;
+      if (document.hidden && syncRef.current && roomRef.current?.phase === "live" && cmdRef.current === "poll") return;
       const send = takeBatch(outboxRef.current, 8);
       // Seat moves and settings always reach the server before "start", so the deal uses what the owner sees.
       const pending = pendingRef.current;

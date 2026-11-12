@@ -7620,9 +7620,9 @@ function qaid() {
     sfx('click');paint();qaydPublish(true, picks);
   }
   function endReview(value){
-    if(finished||!pending)return;
+    if(finished)return;
     finished=true;stopQaidClock();qaydPublish(false);closeOv();
-    if(value)resolvePending(value);
+    if(value&&pending)resolvePending(value);
   }
   shut.onclick=()=>{sfx('click');endReview(null);say('تراجعت عن القيد — كمّل لعبك');};
   // Every kind is always listed. Showing only the "open" ones would tell the
@@ -7667,12 +7667,14 @@ function qaid() {
     if(!picks.kind){hint='اختر نوع القيد';paint();return;}
     if(!picks.reveal||!picks.cheat){hint='اختر الورقتين أول';paint();return;}
     const a=picks.reveal.split(':').map(Number),b=picks.cheat.split(':').map(Number);
-    if(R)R.qaydSent={ kind: picks.kind, reveal: a, cheat: b };
+    if(!pending||!R||!R.myTurn){endReview(null);say('انتهى دورك قبل تأكيد القيد');return;}
+    R.qaydSent={ kind: picks.kind, reveal: a, cheat: b };
     applyQayd(0, matchQayd(0, { kind: picks.kind, reveal: a, cheat: b }));
     endReview({qayd:true});
   };
   qaidClock=setInterval(()=>{
     if(finished||!R){stopQaidClock();return;}
+    if(!pending||!R.myTurn){endReview(null);return;}
     const now=performance.now(),dt=now-stamp;stamp=now;
     if(document.hidden||$('#se')?.classList.contains('on'))return;
     left-=dt;

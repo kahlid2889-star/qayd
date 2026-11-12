@@ -63,9 +63,18 @@
   /* ---------- seats ---------- */
   S.person = (l) => S.on && S.persons.has(l2g(l));
   S.away = (g) => !!S.online && g !== S.you && !S.online.has(g);
+  const aliveSeats = () => [...S.persons].filter((g) => g === S.you || !S.away(g)).sort((a, b) => a - b);
   S.isLead = function () {
-    const alive = [...S.persons].filter((g) => g === S.you || !S.away(g));
-    return alive.length ? Math.min(...alive) === S.you : true;
+    const alive = aliveSeats();
+    return alive.length ? alive[0] === S.you : true;
+  };
+  /* How long this phone waits before deciding in the lead's place. The lead answers at once; if it is
+     connected but stuck (a frozen or hidden tab), the next seat steps in, then the one after. The server
+     keeps only the first answer, so two phones stepping in together is harmless. */
+  S.stepInAfter = function () {
+    if (document.hidden) return Infinity;
+    const rank = Math.max(0, aliveSeats().indexOf(S.you));
+    return rank === 0 ? 0 : 9000 + (rank - 1) * 5000;
   };
   S.firstDealer = () => g2l(Math.abs(Number(S.seed) || 0) % 4);
   S.cast = function () {
@@ -150,7 +159,12 @@
     const k = S.k++;
     trace(k);
     const known = S.moves.get(k);
-    if (known) return { body: known.body };
+    if (known) {
+      /* Far behind the table (back from another app, slow phone): skip the animations until caught up. */
+      if (!S.replaying && S.moves.size - S.k > 5) { S.catching = true; FAST = true; }
+      return { body: known.body };
+    }
+    if (S.catching) { S.catching = false; FAST = FAST_URL; try { renderSeats(); renderHand(); } catch (e) { /* ignore */ } }
     endReplay();
     if (seat === 0 && how.mine) {
       const arrived = waitFor(k);
@@ -178,9 +192,10 @@
         const m = await Promise.race([arrived.promise, sleep(200).then(() => null)]);
         ensure(token);
         if (m) return { body: m.body };
-        if (Date.now() < retryAt || !S.isLead()) continue;
-        const due = !human || S.away(g) || Date.now() - started > PATIENCE_MS;
-        if (!due) continue;
+        if (Date.now() < retryAt) continue;
+        const waited = Date.now() - started;
+        const mine = !human || S.away(g) ? waited : waited - PATIENCE_MS; /* time since this became the table's job */
+        if (mine < S.stepInAfter()) continue;
         retryAt = Date.now() + 4000;
         const body = await how.lead();
         ensure(token);
