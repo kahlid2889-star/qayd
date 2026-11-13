@@ -91,7 +91,12 @@ html:root {
   --c-selected: color-mix(in srgb, var(--c-primary) 14%, var(--c-bg));        /* selected option fill */
   --c-hover: color-mix(in srgb, var(--c-primary) 7%, var(--c-surface));       /* hover on a neutral control */
   --c-disabled: color-mix(in srgb, var(--c-text-2) 22%, var(--c-surface));
-  --c-on-disabled: var(--c-text-2);
+  --c-on-disabled: var(--c-note);
+  --c-on-selected: var(--c-link);   /* text on a selected fill */
+  /* small secondary text: the official secondary text colour, pulled toward the text colour until it is readable (4.5:1) on a surface */
+  --c-note: color-mix(in srgb, var(--c-text-2) 55%, var(--c-text));
+  --c-good: color-mix(in srgb, var(--c-success) 62%, var(--c-text));   /* success as text */
+  --c-bad: color-mix(in srgb, var(--c-danger) 80%, var(--c-text));     /* danger as text */
   --c-focus: var(--c-trim);
   --c-overlay: color-mix(in srgb, var(--c-deep) 64%, transparent);
   --c-shadow: color-mix(in srgb, var(--c-deep) 26%, transparent);
@@ -115,6 +120,7 @@ html:root {
   --board-shadow: var(--c-shadow-strong);
 }
 html:root[data-theme="light"] {
+  --c-primary-face: color-mix(in srgb, var(--c-primary) 82%, var(--c-secondary)); /* white text needs a touch more depth than the pure primary */
   --velvet: var(--c-primary);
   --velvet-hi: color-mix(in srgb, var(--c-primary) 72%, #FFFFFF);
   --velvet-lo: var(--c-secondary);
@@ -122,10 +128,11 @@ html:root[data-theme="light"] {
   --board-lo: var(--c-surface);
   --board-edge: color-mix(in srgb, var(--c-primary) 30%, var(--c-border));
   --board-edge-lo: color-mix(in srgb, var(--c-secondary) 45%, var(--c-border));
-  --c-btn: linear-gradient(180deg, var(--c-primary), var(--c-secondary));
+  --c-btn: linear-gradient(180deg, var(--c-primary-face), var(--c-secondary));
   --c-btn-pressed: linear-gradient(180deg, var(--c-secondary), var(--c-deep));
 }
 html:root[data-theme="dark"] {
+  --c-note: var(--c-text-2); --c-good: var(--c-success); --c-bad: var(--c-danger); --c-on-selected: var(--c-text);
   --velvet: var(--c-primary);
   --velvet-hi: color-mix(in srgb, var(--c-primary) 62%, var(--c-secondary));
   --velvet-lo: var(--c-deep);
@@ -150,12 +157,12 @@ html:root, html:root[data-theme] {
   --b1: var(--c-secondary); --b2: var(--c-primary); --bt: var(--c-on-primary);
   --rug: var(--c-primary); --rg2: var(--c-secondary); --cb: var(--c-primary); --cb2: var(--c-trim);
   --menu-bg: var(--c-bg); --surface: var(--c-raise); --surface-soft: var(--c-surface); --menu-ink: var(--c-text);
-  --muted: var(--c-text-2); --rose: var(--c-link); --rose-deep: var(--c-deep); --trim: var(--c-trim); --line: var(--c-border);
+  --muted: var(--c-note); --rose: var(--c-link); --rose-deep: var(--c-deep); --trim: var(--c-trim); --line: var(--c-border);
   --soft-shadow: 0 8px 24px var(--c-shadow); --focus: var(--c-focus); --brand-logo: var(--c-link);
   --home-play: var(--c-primary); --home-play-ink: var(--c-on-primary); --home-online: var(--c-surface); --home-online-ink: var(--c-text);
   --home-gold: var(--c-trim); --home-edge: var(--c-border); --home-shadow: 0 10px 24px var(--c-shadow);
   --on-bg: var(--c-bg); --on-surface: var(--c-raise); --on-ink: var(--c-text); --on-accent: var(--c-primary); --on-accent-ink: var(--c-on-primary);
-  --qb-bg: var(--c-bg); --qb-surface: var(--c-raise); --qb-soft: var(--c-surface); --qb-ink: var(--c-text); --qb-muted: var(--c-text-2);
+  --qb-bg: var(--c-bg); --qb-surface: var(--c-raise); --qb-soft: var(--c-surface); --qb-ink: var(--c-text); --qb-muted: var(--c-note);
   --qb-primary: var(--c-primary); --qb-primary-hover: var(--c-primary-hover); --qb-primary-ink: var(--c-on-primary); --qb-accent: var(--c-link);
   --qb-gold: var(--c-trim); --qb-gold-deep: color-mix(in srgb, var(--c-trim) 70%, var(--c-deep)); --qb-line: var(--c-border); --qb-focus: var(--c-focus);
   --qb-chrome: var(--c-chrome); --qb-chrome-ink: var(--c-on-chrome); --qb-chrome-line: var(--c-chrome-line);
@@ -180,7 +187,7 @@ html:root, html:root[data-theme] {
 html:root[data-theme] body, html:root[data-theme] body .scr { background-color: var(--c-bg) !important; color: var(--c-text); }
 html:root[data-theme] body :focus-visible { outline: 2px solid var(--c-focus) !important; outline-offset: 2px !important; }
 html:root[data-theme] body ::selection { background: color-mix(in srgb, var(--c-primary) 30%, transparent); }
-html:root[data-theme] body .note { color: var(--c-text-2) !important; }
+html:root[data-theme] body .note { color: var(--c-note) !important; }
 html:root[data-theme] body button { -webkit-tap-highlight-color: transparent; }
 
 /* ── splash ── */
@@ -203,7 +210,7 @@ html:root[data-theme] body #mn .ib:active { background: var(--c-selected) !impor
 html:root[data-theme] body #mn #bell-count { background: var(--c-danger) !important; color: #FFFFFF !important; }
 html:root[data-theme] body #mn .eyebrow { color: var(--c-link) !important; }
 html:root[data-theme] body #mn #pn { color: var(--c-text) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
-html:root[data-theme] body #mn .home-identity .note, html:root[data-theme] body #mn .home-hero-note { color: var(--c-text-2) !important; }
+html:root[data-theme] body #mn .home-identity .note, html:root[data-theme] body #mn .home-hero-note { color: var(--c-note) !important; }
 html:root[data-theme] body #mn .home-identity .av { background: var(--c-raise) !important; border: 2px solid var(--c-trim) !important; box-shadow: 0 6px 16px var(--c-shadow) !important; }
 html:root[data-theme] body .player-mark { background: var(--c-raise) !important; color: var(--c-danger) !important; }
 html:root[data-theme] body .player-mark.ink { color: var(--c-text) !important; }
@@ -214,7 +221,7 @@ html:root[data-theme] body #mn .rank-stage-meta {
   background: var(--c-raise) !important; border: 1px solid var(--c-trim) !important; box-shadow: 0 8px 20px var(--c-shadow) !important; color: var(--c-text) !important;
 }
 html:root[data-theme] body #mn .rank-stage-meta b { color: var(--c-text) !important; }
-html:root[data-theme] body #mn .rank-stage-meta em { color: var(--c-text-2) !important; }
+html:root[data-theme] body #mn .rank-stage-meta em { color: var(--c-note) !important; }
 html:root[data-theme] body #mn .rank-stage-meta small { background: var(--c-bg) !important; color: var(--c-link) !important; border: 1px solid var(--c-border) !important; }
 html:root[data-theme] body #mn .rank-xp, html:root[data-theme] body .rank-xp { background: var(--c-sunk) !important; }
 html:root[data-theme] body #mn .rank-xp > *, html:root[data-theme] body .rank-xp > i { background: var(--c-trim) !important; }
@@ -227,11 +234,11 @@ html:root[data-theme] body #mn #go {
 html:root[data-theme] body #mn #go:hover { filter: brightness(1.06); }
 html:root[data-theme] body #mn #go:active { background: var(--c-btn-pressed) !important; transform: translateY(3px); box-shadow: 0 3px 0 var(--c-deep), 0 8px 16px var(--c-shadow) !important; }
 html:root[data-theme] body #mn #go .home-action-label, html:root[data-theme] body #mn #go .home-action-arrow { color: var(--c-on-primary) !important; background: none !important; box-shadow: none !important; }
-html:root[data-theme] body #mn #go small { color: color-mix(in srgb, var(--c-on-primary) 82%, transparent) !important; }
+html:root[data-theme] body #mn #go small { color: var(--c-on-primary) !important; opacity: .92; }
 
 html:root[data-theme] body #mn .home-record { background: transparent !important; border-color: var(--c-border) !important; box-shadow: none !important; }
 html:root[data-theme] body #mn .home-record-title { color: var(--c-link) !important; }
-html:root[data-theme] body #mn .home-record .sts > div { color: var(--c-text-2) !important; border-color: var(--c-border) !important; }
+html:root[data-theme] body #mn .home-record .sts > div { color: var(--c-note) !important; border-color: var(--c-border) !important; }
 html:root[data-theme] body #mn .home-record .sts b { color: var(--c-text) !important; }
 html:root[data-theme] body #mn .home-record .sts small { color: var(--c-link) !important; }
 html:root[data-theme] body #mn .home-secondary-row > button {
@@ -240,13 +247,13 @@ html:root[data-theme] body #mn .home-secondary-row > button {
 html:root[data-theme] body #mn .home-secondary-row > button:hover { background: var(--c-hover) !important; }
 html:root[data-theme] body #mn .home-secondary-row > button:active { background: var(--c-selected) !important; border-color: var(--c-primary) !important; transform: scale(.985); }
 html:root[data-theme] body #mn .home-secondary-row .home-action-label { color: var(--c-text) !important; }
-html:root[data-theme] body #mn .home-secondary-row small { color: var(--c-text-2) !important; }
-html:root[data-theme] body #mn .home-secondary-row .opt i { background: var(--c-selected) !important; color: var(--c-link) !important; border: 0 !important; }
+html:root[data-theme] body #mn .home-secondary-row small { color: var(--c-note) !important; }
+html:root[data-theme] body #mn .home-secondary-row .opt i { background: var(--c-selected) !important; color: var(--c-on-selected) !important; border: 0 !important; }
 html:root[data-theme] body #mn #nv { background: var(--c-raise) !important; border: 1px solid var(--c-border) !important; box-shadow: 0 10px 28px var(--c-shadow) !important; }
-html:root[data-theme] body #mn #nv button { background: transparent !important; color: var(--c-text-2) !important; border: 0 !important; box-shadow: none !important; }
+html:root[data-theme] body #mn #nv button { background: transparent !important; color: var(--c-note) !important; border: 0 !important; box-shadow: none !important; }
 html:root[data-theme] body #mn #nv button i { color: inherit !important; }
 html:root[data-theme] body #mn #nv button:active { color: var(--c-link) !important; }
-html:root[data-theme] body #mn #nv button.hm { background: var(--c-selected) !important; color: var(--c-link) !important; border: 1px solid var(--c-trim) !important; }
+html:root[data-theme] body #mn #nv button.hm { background: var(--c-selected) !important; color: var(--c-on-selected) !important; border: 1px solid var(--c-trim) !important; }
 
 /* ── sheets, dialogs, options ── */
 html:root[data-theme] body .mod, html:root[data-theme] body #ov { background: var(--c-overlay) !important; }
@@ -260,15 +267,15 @@ html:root[data-theme] body .ch button {
   background: var(--c-raise) !important; color: var(--c-text) !important; border: 1.5px solid var(--c-border) !important; box-shadow: none !important;
 }
 html:root[data-theme] body .ch button b { color: inherit !important; }
-html:root[data-theme] body .ch button small { color: var(--c-text-2) !important; }
+html:root[data-theme] body .ch button small { color: var(--c-note) !important; }
 html:root[data-theme] body .ch button:hover { background: var(--c-hover) !important; }
 html:root[data-theme] body .ch button:active { transform: scale(.98); }
-html:root[data-theme] body .ch button.on { background: var(--c-selected) !important; border-color: var(--c-primary) !important; color: var(--c-link) !important; box-shadow: inset 0 0 0 1px var(--c-primary) !important; }
+html:root[data-theme] body .ch button.on { background: var(--c-selected) !important; border-color: var(--c-primary) !important; color: var(--c-on-selected) !important; box-shadow: inset 0 0 0 1px var(--c-primary) !important; }
 html:root[data-theme] body .ch button.on small { color: var(--c-text) !important; }
 html:root[data-theme] body .ch button:disabled, html:root[data-theme] body .ch button.short, html:root[data-theme] body .ch button[aria-disabled="true"] {
   background: var(--c-disabled) !important; color: var(--c-on-disabled) !important; border-color: var(--c-border) !important; opacity: .7;
 }
-html:root[data-theme] body .ch button.on:disabled { background: var(--c-selected) !important; color: var(--c-link) !important; opacity: 1; }
+html:root[data-theme] body .ch button.on:disabled { background: var(--c-selected) !important; color: var(--c-on-selected) !important; opacity: 1; }
 html:root[data-theme] body .cta, html:root[data-theme] body .qc-go, html:root[data-theme] body #se .set-done {
   background: var(--c-btn) !important; color: var(--c-on-primary) !important; border: 1px solid var(--c-primary) !important; box-shadow: 0 6px 16px var(--c-shadow) !important;
 }
@@ -283,10 +290,10 @@ html:root[data-theme] body .wide:active { background: var(--c-selected) !importa
 html:root[data-theme] body .tx, html:root[data-theme] body textarea, html:root[data-theme] body input[type="text"] {
   background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; caret-color: var(--c-primary);
 }
-html:root[data-theme] body .tx::placeholder, html:root[data-theme] body textarea::placeholder { color: var(--c-text-2) !important; }
+html:root[data-theme] body .tx::placeholder, html:root[data-theme] body textarea::placeholder { color: var(--c-note) !important; }
 html:root[data-theme] body .lb-bal { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; }
-html:root[data-theme] body .pill { background: var(--c-selected) !important; color: var(--c-link) !important; border: 1px solid var(--c-border) !important; }
-html:root[data-theme] body .score-breakdown { background: var(--c-raise) !important; border: 1px solid var(--c-border) !important; color: var(--c-text-2) !important; }
+html:root[data-theme] body .pill { background: var(--c-selected) !important; color: var(--c-on-selected) !important; border: 1px solid var(--c-border) !important; }
+html:root[data-theme] body .score-breakdown { background: var(--c-raise) !important; border: 1px solid var(--c-border) !important; color: var(--c-note) !important; }
 html:root[data-theme] body .score-breakdown strong { color: var(--c-link) !important; }
 html:root[data-theme] body .tbl { color: var(--c-text) !important; }
 html:root[data-theme] body .tbl td, html:root[data-theme] body .tbl th { border-color: var(--c-border) !important; }
@@ -295,16 +302,16 @@ html:root[data-theme] body .tbl tr:last-child td { background: var(--c-surface) 
 html:root[data-theme] body .qn-xp, html:root[data-theme] body .qn-coins, html:root[data-theme] body .rule-section, html:root[data-theme] body details {
   background: var(--c-raise) !important; border-color: var(--c-border) !important; color: var(--c-text) !important;
 }
-html:root[data-theme] body .qn-xp .pos b, html:root[data-theme] body .qn-coins.pos b { color: var(--c-success) !important; }
-html:root[data-theme] body .qn-xp .neg b, html:root[data-theme] body .qn-coins.neg b { color: var(--c-danger) !important; }
+html:root[data-theme] body .qn-xp .pos b, html:root[data-theme] body .qn-coins.pos b { color: var(--c-good) !important; }
+html:root[data-theme] body .qn-xp .neg b, html:root[data-theme] body .qn-coins.neg b { color: var(--c-bad) !important; }
 html:root[data-theme] body .qn-track { background: var(--c-sunk) !important; }
 html:root[data-theme] body .qn-track i { background: var(--c-trim) !important; }
-html:root[data-theme] body .stake-warn { color: var(--c-danger) !important; }
+html:root[data-theme] body .stake-warn { color: var(--c-bad) !important; }
 html:root[data-theme] body #qtoast p { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; border: 1px solid var(--c-chrome-line) !important; box-shadow: 0 8px 22px var(--c-shadow-strong) !important; }
 html:root[data-theme] body .lt-row { background: var(--c-raise) !important; border-color: var(--c-border) !important; }
 html:root[data-theme] body .lt-row.us { border-inline-start-color: var(--c-success) !important; }
 html:root[data-theme] body .lt-row.them { border-inline-start-color: var(--c-danger) !important; }
-html:root[data-theme] body .lt-head span { color: var(--c-text-2) !important; }
+html:root[data-theme] body .lt-head span { color: var(--c-note) !important; }
 html:root[data-theme] body .lt-head em { color: var(--c-link) !important; }
 html:root[data-theme] body .lt-cross .lt-card.win { box-shadow: 0 0 0 2px var(--c-trim), 0 0 8px var(--c-trim) !important; }
 
@@ -312,16 +319,16 @@ html:root[data-theme] body .lt-cross .lt-card.win { box-shadow: 0 0 0 2px var(--
 html:root[data-theme] body #se .set-kicker { color: var(--c-link) !important; }
 html:root[data-theme] body #se .set-save { color: var(--c-link) !important; }
 html:root[data-theme] body #se .set-ava { background: var(--c-raise) !important; border: 2px solid var(--c-trim) !important; }
-html:root[data-theme] body #se #set-ident small { color: var(--c-text-2) !important; }
+html:root[data-theme] body #se #set-ident small { color: var(--c-note) !important; }
 html:root[data-theme] body #se .set-rank, html:root[data-theme] body #se #set-stats, html:root[data-theme] body #se #set-stats .sts, html:root[data-theme] body #se .set-nav button {
   background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; box-shadow: none !important;
 }
 html:root[data-theme] body #se #set-stats .sts { border: 0 !important; }
 html:root[data-theme] body #se #set-stats b { color: var(--c-link) !important; }
-html:root[data-theme] body #se .set-rank small, html:root[data-theme] body #se .set-nav button small, html:root[data-theme] body #se .set-row p { color: var(--c-text-2) !important; }
+html:root[data-theme] body #se .set-rank small, html:root[data-theme] body #se .set-nav button small, html:root[data-theme] body #se .set-row p { color: var(--c-note) !important; }
 html:root[data-theme] body #se .set-nav button:hover { background: var(--c-hover) !important; }
 html:root[data-theme] body #se .set-nav button:active { background: var(--c-selected) !important; }
-html:root[data-theme] body #se .set-nav button i { background: var(--c-selected) !important; color: var(--c-link) !important; border: 0 !important; }
+html:root[data-theme] body #se .set-nav button i { background: var(--c-selected) !important; color: var(--c-on-selected) !important; border: 0 !important; }
 html:root[data-theme] body #se .set-nav button::after { border-color: var(--c-link) !important; }
 html:root[data-theme] body #se .set-xp { background: var(--c-sunk) !important; }
 html:root[data-theme] body #se .set-xp i { background: var(--c-trim) !important; }
@@ -329,12 +336,12 @@ html:root[data-theme] body #se .set-row { border-color: var(--c-border) !importa
 html:root[data-theme] body #se .set-row button.sw { background: var(--c-sunk) !important; }
 html:root[data-theme] body #se .set-row button.sw i { background: #FFFFFF !important; box-shadow: 0 1px 3px var(--c-shadow-strong); }
 html:root[data-theme] body #se .set-row button.sw.on { background: var(--c-primary) !important; }
-html:root[data-theme] body #se .lock-pill { background: var(--c-surface) !important; color: var(--c-text-2) !important; border-color: var(--c-border) !important; }
-html:root[data-theme] body #se .set-ach li { color: var(--c-text-2) !important; border-color: var(--c-border) !important; background: transparent !important; }
-html:root[data-theme] body #se .set-ach li.on { color: var(--c-link) !important; border-color: var(--c-primary) !important; background: var(--c-selected) !important; }
+html:root[data-theme] body #se .lock-pill { background: var(--c-surface) !important; color: var(--c-note) !important; border-color: var(--c-border) !important; }
+html:root[data-theme] body #se .set-ach li { color: var(--c-note) !important; border-color: var(--c-border) !important; background: transparent !important; }
+html:root[data-theme] body #se .set-ach li.on { color: var(--c-on-selected) !important; border-color: var(--c-primary) !important; background: var(--c-selected) !important; }
 html:root[data-theme] body #se input[type="range"] { accent-color: var(--c-primary) !important; }
 html:root[data-theme] body #se #qa-host button { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; }
-html:root[data-theme] body #se #qa-host button.on, html:root[data-theme] body #se #qa-host button[aria-pressed="true"] { background: var(--c-selected) !important; color: var(--c-link) !important; border-color: var(--c-primary) !important; }
+html:root[data-theme] body #se #qa-host button.on, html:root[data-theme] body #se #qa-host button[aria-pressed="true"] { background: var(--c-selected) !important; color: var(--c-on-selected) !important; border-color: var(--c-primary) !important; }
 
 /* ── game: scene, header, dock ── */
 html:root[data-theme] body #gm.on { background: var(--c-scene) !important; }
@@ -364,7 +371,7 @@ html:root[data-theme] body #gm.on #prow #slam-btn.short { opacity: .5; }
 html:root[data-theme] body #gm.on #prow #akk-button.selected { background: var(--c-accent) !important; color: var(--c-on-accent) !important; border-color: var(--c-accent) !important; }
 html:root[data-theme] body #gm.on #mav { background: conic-gradient(var(--c-accent) var(--p, 0%), var(--c-chrome-control) 0) !important; }
 html:root[data-theme] body #gm.on #mav .in { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; }
-html:root[data-theme] body #gm.on #tm { color: var(--c-on-chrome) !important; }
+html:root[data-theme] body #gm.on #mav #tm, html:root[data-theme] body #gm.on #mav.live #tm { color: var(--c-on-chrome) !important; text-shadow: 0 1px 2px var(--c-chrome), 0 0 6px var(--c-chrome) !important; background: var(--c-chrome) !important; }
 html:root[data-theme] body #gm.on .dealer-tag { background: var(--c-accent) !important; color: var(--c-on-accent) !important; border: 0 !important; }
 html:root[data-theme] body #gm.on #prj .pbtn { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-trim) !important; }
 
@@ -404,19 +411,19 @@ html:root[data-theme] body #ob.qaid-catch .qc-title { color: var(--c-link) !impo
 html:root[data-theme] body #ob.qaid-catch .qc-time { background: var(--c-raise) !important; border: 2px solid var(--c-trim) !important; color: var(--c-text) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-time.hot { border-color: var(--c-danger) !important; color: var(--c-danger) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-kind { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1.5px solid var(--c-border) !important; }
-html:root[data-theme] body #ob.qaid-catch .qc-kind small { color: var(--c-text-2) !important; }
-html:root[data-theme] body #ob.qaid-catch .qc-kind.on { background: var(--c-primary) !important; border-color: var(--c-primary) !important; color: var(--c-on-primary) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-kind small { color: var(--c-note) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-kind.on { background: var(--c-btn) !important; border-color: var(--c-primary) !important; color: var(--c-on-primary) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-kind.off { background: var(--c-disabled) !important; color: var(--c-on-disabled) !important; }
-html:root[data-theme] body #ob.qaid-catch .qc-desc { color: var(--c-text-2) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-desc { color: var(--c-note) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-desc.on { color: var(--c-text) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-ask { background: var(--c-surface) !important; border: 1px solid var(--c-border) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-prompt.ask { color: var(--c-text) !important; }
-html:root[data-theme] body #ob.qaid-catch .qc-prompt.bad { color: var(--c-danger) !important; }
-html:root[data-theme] body #ob.qaid-catch .qc-prompt.go { color: var(--c-success) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-prompt.bad { color: var(--c-bad) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-prompt.go { color: var(--c-good) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-bar { background: var(--c-sunk) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-bar i { background: var(--c-trim) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-bar i.hot { background: var(--c-danger) !important; }
-html:root[data-theme] body #ob.qaid-catch .qc-name, html:root[data-theme] body #ob.qaid-catch .qc-hands-title, html:root[data-theme] body #ob.qaid-catch .qc-empty { color: var(--c-text-2) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-name, html:root[data-theme] body #ob.qaid-catch .qc-hands-title, html:root[data-theme] body #ob.qaid-catch .qc-empty { color: var(--c-note) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-slot.on { box-shadow: 0 0 0 3px var(--c-accent), 0 6px 14px var(--c-shadow-strong) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-slot.on::after { background: var(--c-accent) !important; color: var(--c-on-accent) !important; }
 html:root[data-theme] body #ob.qaid-catch .qc-slot[data-tag="غش"].on { box-shadow: 0 0 0 3px var(--c-danger), 0 6px 14px var(--c-shadow-strong) !important; }
@@ -424,7 +431,7 @@ html:root[data-theme] body #ob.qaid-catch .qc-slot[data-tag="غش"].on::after { 
 html:root[data-theme] body #ob.qaid-catch .qc-go { opacity: .5; }
 html:root[data-theme] body #ob.qaid-catch .qc-go.ready { opacity: 1; }
 html:root[data-theme] body #bot-qaid h2 { color: var(--c-link) !important; }
-html:root[data-theme] body #bot-qaid p, html:root[data-theme] body #bot-qaid .qc-caught-cards b { color: var(--c-text-2) !important; }
+html:root[data-theme] body #bot-qaid p, html:root[data-theme] body #bot-qaid .qc-caught-cards b { color: var(--c-note) !important; }
 
 /* lineup between rounds */
 html:root[data-theme] body #lineup .lu-veil { background: var(--c-overlay) !important; }

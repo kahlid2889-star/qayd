@@ -1,11 +1,8 @@
 import { useEffect, useRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from "react";
 
 /** The three looks of the table; every v2 screen follows the one the player picked in the game. */
-export const PALETTES: Record<string, Record<string, string>> = {
-  trad: { "--q-bg": "#F3E8D4", "--q-surface": "#FFF8EB", "--q-card": "#F3E8D4", "--q-input": "#FFFFFF", "--q-ink": "#39271F", "--q-muted": "#6E5A4A", "--q-line": "#D6C1A1", "--q-primary": "#681F32", "--q-primary-ink": "#FFF8EB", "--q-accent": "#681F32", "--q-gold": "#B89558", "--q-error": "#9D3048", "--q-ok": "#2F6B45" },
-  dark: { "--q-bg": "#101820", "--q-surface": "#18232D", "--q-card": "#222F3B", "--q-input": "#101820", "--q-ink": "#F4F6F8", "--q-muted": "#A4B0BA", "--q-line": "#34414C", "--q-primary": "#20A783", "--q-primary-ink": "#101820", "--q-accent": "#E0B85C", "--q-gold": "#E0B85C", "--q-error": "#FFB4B4", "--q-ok": "#8ED9B0" },
-  light: { "--q-bg": "#F7F9FC", "--q-surface": "#FFFFFF", "--q-card": "#EEF2F5", "--q-input": "#FFFFFF", "--q-ink": "#202D3A", "--q-muted": "#5E6B78", "--q-line": "#E1E7EC", "--q-primary": "#16866A", "--q-primary-ink": "#FFFFFF", "--q-accent": "#16866A", "--q-gold": "#D6AD59", "--q-error": "#A0243B", "--q-ok": "#16866A" },
-};
+export { PALETTES } from "@/lib/qayd/theme";
+import { PALETTES } from "@/lib/qayd/theme";
 export function readTheme(): string {
   try { const t = (JSON.parse(localStorage.getItem("sb") || "{}") as { theme?: unknown }).theme; return typeof t === "string" && PALETTES[t] ? t : "trad"; } catch { return "trad"; }
 }

@@ -4,6 +4,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authClient, signOut } from "@/lib/auth/client";
 import { AuthPanel } from "@/components/auth-panel";
 import { beginMatch, inviteFriend, joinRoom, listFriends, listNotices, loadProfile, movesConfig, pullMoves, pushMove, releasePlayer, saveProfile, settleXp, syncRoom } from "@/lib/qayd/server";
+import { PALETTES } from "@/lib/qayd/theme";
 import { FriendsBook } from "@/components/qayd-friends";
 import { NoticeBell, type NoticeItem } from "@/components/qayd-notices";
 import { pushMail, restoreBatch, takeBatch } from "@/lib/qayd/mail";
@@ -19,31 +20,6 @@ type Room = { code: string; title: string; phase: string; hostId: string | null;
 const DEFAULT_SETTINGS: RoomSettings = { mode: "friendly", len: 152, stake: 0 };
 const LENGTHS = [61, 101, 152];
 const STAKES = [0, 100, 500, 1000, 2500];
-
-/** The three looks of the table. The panels follow whichever one the player picked in the game's settings. */
-const PALETTES: Record<string, Record<string, string>> = {
-  trad: {
-    "--q-bg": "#F3E8D4", "--q-surface": "#FFF8EB", "--q-card": "#F3E8D4", "--q-input": "#FFFFFF", "--q-ink": "#39271F",
-    "--q-muted": "#927D6C", "--q-line": "#D6C1A1", "--q-primary": "#681F32", "--q-primary-ink": "#FFF8EB",
-    "--q-accent": "#681F32", "--q-gold": "#B89558", "--q-error": "#9D3048", "--q-ok": "#2F6B45",
-  },
-  dark: {
-    "--q-bg": "#101820", "--q-surface": "#18232D", "--q-card": "#222F3B", "--q-input": "#101820", "--q-ink": "#F4F6F8",
-    "--q-muted": "#A4B0BA", "--q-line": "#34414C", "--q-primary": "#20A783", "--q-primary-ink": "#101820",
-    "--q-accent": "#E0B85C", "--q-gold": "#E0B85C", "--q-error": "#FFB4B4", "--q-ok": "#8ED9B0",
-  },
-  light: {
-    "--q-bg": "#F7F9FC", "--q-surface": "#FFFFFF", "--q-card": "#EEF2F5", "--q-input": "#FFFFFF", "--q-ink": "#202D3A",
-    "--q-muted": "#89939E", "--q-line": "#E1E7EC", "--q-primary": "#16866A", "--q-primary-ink": "#FFFFFF",
-    "--q-accent": "#16866A", "--q-gold": "#D6AD59", "--q-error": "#A0243B", "--q-ok": "#16866A",
-  },
-};
-
-// The traditional sheet is dark maroon, so its cards and text need dark-sheet colours.
-const TRAD_SHEET: Record<string, string> = {
-  "--q-card": "rgba(246, 234, 215, 0.07)", "--q-ink": "#F6EAD7", "--q-muted": "#C9B59A",
-  "--q-line": "rgba(224, 196, 138, 0.32)", "--q-input": "#14080C", "--q-accent": "#F0D48A", "--q-error": "#FF9DB0",
-};
 
 function readTheme(): string {
   try {
@@ -1156,10 +1132,10 @@ export function QaydShell() {
         </div>
       )}
       {panel ? (
-        <div className="fixed inset-0 z-20 flex items-end justify-center bg-[#0c0608]/78" onClick={() => void leaveLobby()}>
+        <div className="fixed inset-0 z-20 flex items-end justify-center bg-[var(--q-overlay)]" onClick={() => void leaveLobby()}>
           <section
             className="qayd-sheet max-h-[92dvh] w-full overflow-auto rounded-t-[28px] px-5 pt-3 pb-[max(20px,env(safe-area-inset-bottom))] text-[var(--q-ink)] sm:max-w-md sm:mb-6 sm:rounded-[28px] sm:border-b"
-            style={(theme === "trad" ? { ...PALETTES.trad, ...TRAD_SHEET } : PALETTES[theme]) as CSSProperties}
+            style={PALETTES[theme] as CSSProperties}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-label={panel === "online" ? TITLE : panel === "friends" ? "الأصدقاء" : "الحساب"}

@@ -22,14 +22,13 @@ body {
 }
 
 .qayd-sheet {
+  /* Colours come from the identity (src/lib/qayd/theme.ts) through the --q-* variables. */
   position: relative;
-  background:
-    radial-gradient(120% 42% at 50% -10%, rgba(224, 196, 138, 0.22), transparent 46%),
-    linear-gradient(180deg, #4a2030 0%, #1a0c10 38%, #12080c 100%);
-  color: #f6ead7;
-  border: 1px solid rgba(224, 196, 138, 0.48);
+  background: var(--q-bg);
+  color: var(--q-ink);
+  border: 1px solid var(--q-line);
   border-bottom: 0;
-  box-shadow: 0 -28px 70px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 -24px 60px var(--q-shadow);
 }
 
 .qayd-sheet::before {
@@ -41,46 +40,28 @@ body {
   height: 4px;
   margin: 0 auto 12px;
   border-radius: 99px;
-  background: rgba(224, 196, 138, 0.75);
+  background: var(--q-gold);
 }
 
-.qayd-sheet h2 {
-  color: #f0d48a;
-}
+.qayd-sheet h2 { color: var(--q-accent); }
 
 .qayd-sheet input,
 .qayd-sheet textarea {
-  background: #14080c;
-  color: #f6ead7;
-  border-color: rgba(224, 196, 138, 0.4);
+  background: var(--q-input);
+  color: var(--q-ink);
+  border-color: var(--q-line);
+  caret-color: var(--q-primary);
 }
+.qayd-sheet input::placeholder,
+.qayd-sheet textarea::placeholder { color: var(--q-muted); }
+.qayd-sheet input:focus-visible,
+.qayd-sheet textarea:focus-visible,
+.qayd-sheet button:focus-visible,
+.qayd-sheet a:focus-visible { outline: 2px solid var(--q-gold); outline-offset: 2px; }
 
-[data-theme="dark"] .qayd-sheet {
-  background:
-    radial-gradient(120% 42% at 50% -10%, rgba(32, 167, 131, 0.22), transparent 46%),
-    linear-gradient(180deg, #1c3a34 0%, #101820 70%);
-  color: #f4f6f8;
-  border-color: rgba(224, 184, 92, 0.45);
-}
-[data-theme="dark"] .qayd-sheet::before { background: rgba(224, 184, 92, 0.8); }
-[data-theme="dark"] .qayd-sheet h2 { color: #e0b85c; }
-[data-theme="dark"] .qayd-sheet input,
-[data-theme="dark"] .qayd-sheet textarea {
-  background: #101820;
-  color: #f4f6f8;
-  border-color: #34414c;
-}
-[data-theme="light"] .qayd-sheet {
-  background: linear-gradient(180deg, #ffffff 0%, #eef2f5 100%);
-  color: #202d3a;
-  border-color: #d6ad59;
-}
-[data-theme="light"] .qayd-sheet::before { background: #d6ad59; }
-[data-theme="light"] .qayd-sheet h2 { color: #16866a; }
-[data-theme="light"] .qayd-sheet input,
-[data-theme="light"] .qayd-sheet textarea {
-  background: #ffffff;
-  color: #202d3a;
-  border-color: #e1e7ec;
-}
-[data-theme="light"] .qayd-sheet input::placeholder { color: #89939e; }
+/* Buttons: one behaviour everywhere. */
+.qayd-sheet button { transition: background-color 0.15s ease, filter 0.15s ease, transform 0.1s ease; }
+.qayd-sheet button:not(:disabled):active { transform: scale(0.985); }
+.qayd-sheet [class*="bg-[var(--q-primary)]"]:not(:disabled):hover { background-color: var(--q-primary-hover); }
+.qayd-sheet [class*="bg-[var(--q-primary)]"]:not(:disabled):active { background-color: var(--q-deep); }
+.qayd-sheet button:disabled { opacity: 0.55; cursor: not-allowed; }

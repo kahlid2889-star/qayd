@@ -59,7 +59,7 @@ export function NoticeBell({
   return (
     <>
       {open ? (
-        <div className="fixed inset-0 z-40 grid place-items-end bg-black/45 sm:place-items-center" onClick={onToggle}>
+        <div className="fixed inset-0 z-40 grid place-items-end bg-[var(--q-overlay)] sm:place-items-center" onClick={onToggle}>
           <section
             dir="rtl"
             role="dialog"
