@@ -129,10 +129,10 @@ html:root[data-theme="dark"] {
   --velvet: var(--c-primary);
   --velvet-hi: color-mix(in srgb, var(--c-primary) 62%, var(--c-secondary));
   --velvet-lo: var(--c-deep);
-  --board: color-mix(in srgb, var(--c-deep) 70%, var(--c-border));
-  --board-lo: var(--c-surface);
-  --board-edge: var(--c-border);
-  --board-edge-lo: var(--c-bg);
+  --board: color-mix(in srgb, var(--c-text) 92%, var(--c-secondary));
+  --board-lo: color-mix(in srgb, var(--c-text-2) 80%, var(--c-deep));
+  --board-edge: var(--c-secondary);
+  --board-edge-lo: var(--c-primary);
   --c-raise: color-mix(in srgb, var(--c-surface) 78%, var(--c-border));
   --c-sunk: color-mix(in srgb, var(--c-bg) 70%, var(--c-surface));
   --c-selected: color-mix(in srgb, var(--c-primary) 42%, var(--c-surface));

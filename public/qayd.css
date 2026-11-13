@@ -4591,7 +4591,7 @@ html body #gm #tw #rug .table-cup,
 html body #gm #tw #rug #qaid-watermark,
 html body #gm #tw .sofa { display: none !important; }
 #qayd-board { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; transform: translateZ(0); }
-#qayd-board .bd-shadow { fill: rgba(0, 0, 0, .5); }
+#qayd-board .bd-shadow { fill: var(--board-shadow); }
 #qayd-board .bd-edge { fill: var(--board-edge-lo); }
 #qayd-board .bd-edge2 { fill: var(--board-edge); }
 #qayd-board .velvet { fill: var(--velvet); }
