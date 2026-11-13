@@ -2,6 +2,7 @@
    Later sections override earlier ones. Generated once by scripts/split-game.mjs; edit this file directly from now on. */
 
 /* ════════════════ base 1 ════════════════ */
+:root { --cr: 1.45; } /* card height = width × this (one place for the card proportion) */
 :root{
  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -2580,12 +2581,12 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 /* ════════════════ Qaid original reference card styles ════════════════ */
 /* Qaid original reference card styles */
 /* Original interiors preserved; one crisp UI outline replaces the scanned outer frame. */
-#gm #hand { height: calc(var(--cw)*1.35 + 12px); bottom: calc(var(--draft-dock-h) - var(--cw)*.3375 - 10px); }
-#gm #hand .cd.reference-face { width: var(--cw); height: calc(var(--cw)*1.35); }
-.cd.reference-face { aspect-ratio: auto; width: var(--cw); height: calc(var(--cw)*1.35); border: 1px solid rgba(30,28,25,.68); overflow: hidden; }
+#gm #hand { height: calc(var(--cw)*var(--cr) + 12px); bottom: calc(var(--draft-dock-h) - var(--cw)*.2 - 8px); }
+#gm #hand .cd.reference-face { width: var(--cw); height: calc(var(--cw)*var(--cr)); }
+.cd.reference-face { aspect-ratio: auto; width: var(--cw); height: calc(var(--cw)*var(--cr)); border: 1px solid rgba(30,28,25,.68); overflow: hidden; }
 .cd.reference-face .card-front-art { display: block; width: 100%; height: 100%; object-fit: fill; user-select: none; pointer-events: none; -webkit-user-drag: none; }
-#gm .sl { height: calc(var(--tw)*1.35); }
-#gm #fl { height: calc(var(--tw)*1.35); top: calc(50% - var(--tw)*.675); }
+#gm .sl { height: calc(var(--tw)*var(--cr)); }
+#gm #fl { height: calc(var(--tw)*var(--cr)); top: calc(50% - var(--tw)*var(--cr)/2); }
 #gm .sl .cd.reference-face,#gm #fl .cd.reference-face { --cw: var(--tw); width: 100%; height: 100%; }
 #gm #hand .cd.reference-face.ok { border: 1px solid rgba(30,28,25,.68); box-shadow: 0 1px 2px #1d171423,0 5px 12px #1d171429; }
 #gm #hand .cd.reference-face:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
@@ -2620,7 +2621,7 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 .lu-row.foe .lu-level { background: #fff; border-color: #d5d6dc; color: #2a2a30; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
 .lu-row.foe .lu-level .rd { color: #d0122a; }
 .lu-rank { width: 80px; height: 90px; display: grid; place-items: center; align-self: center; justify-self: center; pointer-events: none; }
-.lu-rank .cd { --cw: 64px; width: 64px; height: calc(64px * 1.35); position: relative; transform: rotate(-7deg); transform-origin: center center; border-radius: 6px; box-shadow: 0 8px 14px rgba(0,0,0,.28), 0 0 0 1px rgba(255,255,255,.55); }
+.lu-rank .cd { --cw: 64px; width: 64px; height: calc(64px * var(--cr)); position: relative; transform: rotate(-7deg); transform-origin: center center; border-radius: 6px; box-shadow: 0 8px 14px rgba(0,0,0,.28), 0 0 0 1px rgba(255,255,255,.55); }
 .lu-vs { position: relative; width: 148px; height: 72px; display: grid; place-items: center; margin: 0; }
 .lu-vs::before { content: ""; position: absolute; width: 148px; height: 148px; background: repeating-conic-gradient(from 8deg, rgba(255, 220, 80, 0) 0 12deg, rgba(255, 214, 64, .95) 12deg 14deg); -webkit-mask: radial-gradient(circle, transparent 0 22%, #000 30%, transparent 68%); mask: radial-gradient(circle, transparent 0 22%, #000 30%, transparent 68%); animation: lu-spin 9s linear infinite; }
 .lu-vs b { position: relative; z-index: 1; font-family: "Reem Kufi", Tajawal, Tahoma, sans-serif; font-size: 44px; line-height: 1; color: #ffe56a; background: rgba(42, 16, 8, .72); border-radius: 18px; padding: 0 16px 2px; text-shadow: 0 2px 0 #6a480c; animation: lu-pop .55s .15s cubic-bezier(.2,.9,.2,1.15) both; }
@@ -2641,7 +2642,7 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
   .lu-av { width: 46px; height: 46px; }
   .lu-name > b { font-size: 15px; }
   .lu-rank { width: 70px; height: 78px; }
-  .lu-rank .cd { --cw: 54px; width: 54px; height: calc(54px * 1.35); }
+  .lu-rank .cd { --cw: 54px; width: 54px; height: calc(54px * var(--cr)); }
   .lu-vs { height: 60px; }
   .lu-vs b { font-size: 38px; }
 }
@@ -4619,7 +4620,7 @@ html #gm.on #rml { display: grid; justify-items: center; gap: 3px; }
 html #gm.on #rml small { font: 700 10px/1.2 Tajawal, sans-serif; color: var(--v9-gold, #e3bd6a); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[data-theme="light"] #gm.on #rml small { color: #1d4fb0; }
 .lt-cross { position: relative; width: calc(var(--lw) * 2.9); height: calc(var(--lw) * 3.05); flex: none; }
-.lt-cross .lt-card { position: absolute; width: var(--lw); height: calc(var(--lw) * 1.35); border-radius: calc(var(--lw) * .12); }
+.lt-cross .lt-card { position: absolute; width: var(--lw); height: calc(var(--lw) * var(--cr)); border-radius: calc(var(--lw) * .12); }
 .lt-cross .lt-card .cd { --cw: var(--lw) !important; position: static !important; width: 100% !important; height: 100% !important; transform: none !important; border-radius: inherit !important; border-width: .5px !important; box-shadow: 0 1px 2px rgba(0, 0, 0, .35) !important; }
 .lt-cross .p2 { left: calc(50% - var(--lw) / 2); top: 0; }
 .lt-cross .p0 { left: calc(50% - var(--lw) / 2); bottom: 0; }

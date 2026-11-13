@@ -1961,7 +1961,7 @@ if (document.fonts) document.fonts.ready.then(() => {
     let width = element.offsetWidth, height = element.offsetHeight;
     if (width < 2 || height < 2) {
       const tw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tw')) || 64;
-      width = tw; height = Math.round(tw * 1.35);
+      width = tw; height = Math.round(tw * 1.45);
     }
     return {width: Math.round(width), height: Math.round(height)};
   }
@@ -2628,8 +2628,8 @@ function startClock(timeout, seconds = 25, seat = 0) {
 addEventListener('visibilitychange',()=>{clockLast=performance.now();});
 function sizes() {
   const landscape=innerWidth>innerHeight && innerHeight<600;
-  let width=landscape?Math.min(112,innerWidth*.14,innerHeight*.29):Math.min(160,innerWidth*.35,innerHeight*.175);
-  width=Math.max(82,width);
+  let width=landscape?Math.min(104,innerWidth*.13,innerHeight*.27):Math.min(148,innerWidth*.322,innerHeight*.162); /* a slimmer card: the height stays, the width drops */
+  width=Math.max(76,width);
   document.documentElement.style.setProperty('--cw',width+'px');
   document.documentElement.style.setProperty('--tw',(landscape?Math.min(57,innerHeight*.135):Math.min(78,innerWidth*.16))+'px');
   fitTable();if(R)renderHand();

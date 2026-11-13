@@ -14,16 +14,17 @@ from fontTools.pens.transformPen import TransformPen
 
 ROOT = Path(__file__).resolve().parent.parent
 HTML = ROOT / "public" / "qayd-js" / "02-cards.js"  # the file that holds window.QAID_CARD_ART
-FONT = "/usr/share/fonts/truetype/crosextra/Caladea-Bold.ttf"
-W, H = 240, 324
+FONT = "/usr/share/fonts/opentype/inter/Inter-Medium.otf"  # a plain, simple sans for the index
+ART = ROOT / "scripts" / "card-art"  # repaired court paintings, by card key (e.g. 04.webp = jack of spades)
+W, H = 240, 348  # a slimmer card: 1 : 1.45
 BLACK, RED = "#15171a", "#c8102e"
 RANKS = ["7", "8", "9", "10", "J", "Q", "K", "A"]  # r = 0..7
-CAP = 50.0          # index cap height, the same on every card
-INDEX_X = 29.0      # centre of the index column
-INDEX_W = 42.0      # widest a rank may be
-INDEX_TOP = 15.0    # top of the rank glyph
-SUIT = 34.0         # index suit size
-SUIT_GAP = 6.0
+CAP = 46.0          # index cap height, the same on every card
+INDEX_X = 28.0      # centre of the index column
+INDEX_W = 40.0      # widest a rank may be
+INDEX_TOP = 16.0    # top of the rank glyph
+SUIT = 30.0         # index suit size
+SUIT_GAP = 7.0
 
 font = TTFont(FONT)
 glyphs, cmap, upm = font.getGlyphSet(), font.getBestCmap(), font["head"].unitsPerEm
@@ -84,7 +85,7 @@ def index(rank, shape, colour):
 
 # Pip grid: two columns and a centre line, kept clear of the index columns.
 L, C, R = 88.0, 120.0, 152.0
-T, B = 62.0, 262.0
+T, B = 66.0, H - 66.0
 def rows(n): return [T + (B - T) * i / (n - 1) for i in range(n)]
 LAYOUT = {
     "7": [(L, y) for y in rows(3)] + [(R, y) for y in rows(3)] + [(C, (rows(3)[0] + rows(3)[1]) / 2)],
@@ -105,11 +106,17 @@ def build(s, r, old, shape):
     elif rank == "A":
         body.append(pip(shape, colour, W / 2, H / 2, 118))
     else:
-        image = re.search(r"<image [^>]+/>", old).group(0)
-        frame = re.search(r'<rect x="[^"]+" y="[^"]+" width="[^"]+" height="[^"]+" fill="none"[^>]*/>', old)
-        body.append(image)
-        if frame:
-            body.append(re.sub(r'stroke="#[0-9a-f]+"', f'stroke="{BLACK}"', frame.group(0)))
+        # The court painting: kept as it is, centred in its frame (a repaired file in scripts/card-art wins).
+        href = re.search(r'<image href="([^"]+)"', old).group(1)
+        fixed = ART / f"{s}{r}.webp"
+        if fixed.exists():
+            href = "data:image/webp;base64," + base64.b64encode(fixed.read_bytes()).decode()
+        from PIL import Image
+        import io
+        iw, ih = Image.open(io.BytesIO(base64.b64decode(href.split(",", 1)[1]))).size
+        fw = 136.0; fh = fw * ih / iw; fx = (W - fw) / 2; fy = (H - fh) / 2
+        body.append(f'<image href="{href}" x="{fx:.1f}" y="{fy:.1f}" width="{fw:.1f}" height="{fh:.1f}" preserveAspectRatio="xMidYMid meet"/>')
+        body.append(f'<rect x="{fx:.1f}" y="{fy:.1f}" width="{fw:.1f}" height="{fh:.1f}" rx="5" fill="none" stroke="{BLACK}" stroke-width="1.6"/>')
     body.append(index(rank, shape, colour))
     body.append("</svg>")
     return "".join(body)
