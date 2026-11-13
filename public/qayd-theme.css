@@ -371,7 +371,7 @@ html:root[data-theme] body #gm.on #prow #slam-btn.short { opacity: .5; }
 html:root[data-theme] body #gm.on #prow #akk-button.selected { background: var(--c-accent) !important; color: var(--c-on-accent) !important; border-color: var(--c-accent) !important; }
 html:root[data-theme] body #gm.on #mav { background: conic-gradient(var(--c-accent) var(--p, 0%), var(--c-chrome-control) 0) !important; }
 html:root[data-theme] body #gm.on #mav .in { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; }
-html:root[data-theme] body #gm.on #mav #tm, html:root[data-theme] body #gm.on #mav.live #tm { color: var(--c-on-chrome) !important; text-shadow: 0 1px 2px var(--c-chrome), 0 0 6px var(--c-chrome) !important; background: var(--c-chrome) !important; }
+html:root[data-theme] body #gm.on #mav #tm, html:root[data-theme] body #gm.on #mav.live #tm { color: var(--c-on-chrome) !important; text-shadow: 0 1px 2px var(--c-chrome), 0 0 6px var(--c-chrome) !important; background: color-mix(in srgb, var(--c-chrome) 78%, transparent) !important; border-radius: 50% !important; }
 html:root[data-theme] body #gm.on .dealer-tag { background: var(--c-accent) !important; color: var(--c-on-accent) !important; border: 0 !important; }
 html:root[data-theme] body #gm.on #prj .pbtn { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-trim) !important; }
 
