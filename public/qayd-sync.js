@@ -269,8 +269,10 @@
   S.card = async function (p, token, how) {
     const { body, local } = await decide(p, token, {
       mine: async () => {
-        const res = await how.mine();
+        let res = await how.mine();
         if (!res) return { body: { none: 1 }, local: null };
+        /* Anything that is not a real decision (a stray answer to the prompt) becomes a legal card: the table must never stall. */
+        if (!res.qayd && !res.claim && !(res.card && Number.isInteger(res.card.s))) res = { card: aiPick(0), from: center(document.getElementById("hand")) };
         let body;
         if (res.qayd) body = { q: picksOut(R && R.qaydSent, true) };
         else if (res.claim) body = { sw: 1 };
@@ -331,8 +333,10 @@
   /* Between rounds nobody waits forever for a phone that is not looking. */
   S.autoNext = function (token, done) {
     if (done) return;
+    const waiting = pending; /* only this result screen's own prompt may be answered by the timer */
     setTimeout(() => {
-      if (token !== epoch || !pending) return;
+      if (token !== epoch || !waiting || pending !== waiting) return;
+      if (!document.getElementById("ov").classList.contains("on")) return;
       const nx = document.getElementById("nx");
       if (nx) nx.click();
     }, S.replaying ? 10 : 9000);

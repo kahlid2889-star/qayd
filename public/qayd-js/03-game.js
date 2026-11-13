@@ -2559,7 +2559,7 @@ function bidTone(value) {
 function log(text) { if (R) R.log.unshift(text); }
 function show(id) { document.querySelectorAll('.scr:not(#sp)').forEach(s => s.classList.toggle('on', s.id === id)); }
 function ov(html) { const ob=$('#ob'); ob.classList.remove('qaid-catch','qc-watch'); delete ob.dataset.qaydSig; ob.innerHTML = html; $('#ov').classList.add('on'); }
-function closeOv() { stopQaidClock(); const ob=$('#ob'); if(ob){ ob.classList.remove('qaid-catch','qc-watch'); delete ob.dataset.qaydSig; } $('#ov').classList.remove('on'); }
+function closeOv() { stopQaidClock(); const oldNext=$('#nx'); if(oldNext) oldNext.onclick=null; /* a closed dialog must not answer a later prompt */ const ob=$('#ob'); if(ob){ ob.classList.remove('qaid-catch','qc-watch'); delete ob.dataset.qaydSig; } $('#ov').classList.remove('on'); }
 function center(el) { const r = el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
 const hk = () => R && R.mode === 'hokm';
 const isT = c => Baloot.isTrump(c, R.mode, R.T);
