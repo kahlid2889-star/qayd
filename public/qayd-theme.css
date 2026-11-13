@@ -371,3 +371,6 @@ html:root[data-theme] body .drop-plaque small, html:root[data-theme] body .drop-
 html:root[data-theme] body .drop-lv { background: var(--c-accent) !important; color: var(--c-on-accent) !important; }
 html:root[data-theme] body .drop-xp { background: var(--c-chrome-control) !important; }
 html:root[data-theme] body .drop-xp i { background: var(--c-accent) !important; }
+
+/* a card queued before my turn: lifted and straight, with a quiet ring (no glare) */
+html:root[data-theme] body #gm.on #hand .cd.pre { box-shadow: 0 0 0 2px var(--c-primary), 0 14px 24px var(--c-shadow-strong) !important; filter: none !important; z-index: 40 !important; }

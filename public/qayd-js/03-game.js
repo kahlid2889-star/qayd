@@ -2441,10 +2441,11 @@ function renderHand() {
   const angle=innerWidth>innerHeight?1.15:1.4,allowed=legal(0);
   hand.slice().reverse().forEach((card,i)=>{
     const e=existing.get(cn(card))||cardEl(card),m=i-(n-1)/2,ok=allowed.includes(card);
-    e.classList.remove('ok','no');e.style.transition=R.phase==='deal'?'none':'';
+    const queued=!R.myTurn&&R.pre===cn(card);
+    e.classList.remove('ok','no');e.classList.toggle('pre',queued);e.setAttribute('aria-pressed',queued?'true':'false');e.style.transition=R.phase==='deal'?'none':'';
     e.style.left=start+i*step+'px';e.style.zIndex=i+1;
-    const base=`translateY(${m*m*.45-(R.myTurn&&ok&&cfg.mode!=='free'?18:0)}px) rotate(${m*angle}deg)`;
-    e.style.transform=base;e.dataset.b=base;e.dataset.card=cn(card);e.setAttribute('role','button');e.setAttribute('aria-label',cn(card));e.tabIndex=R.myTurn?0:-1;
+    const base=`translateY(${m*m*.45-(R.myTurn&&ok&&cfg.mode!=='free'?18:0)-(queued?Math.round(cwid*.3):0)}px) rotate(${queued?0:m*angle}deg)`;
+    e.style.transform=base;e.dataset.b=base;e.dataset.card=cn(card);e.setAttribute('role','button');e.setAttribute('aria-label',cn(card));e.tabIndex=(R.myTurn||R.phase==='play')?0:-1;
     if(R.myTurn && cfg.mode!=='free' && window.__qaydHints!==false)e.classList.add(ok?'ok':'no');
     const submit=()=>{
       if(!R.myTurn || !pending || R.phase!=='play'||paused())return;
@@ -2452,11 +2453,12 @@ function renderHand() {
       if(R.akkNext){const reason=akkBlock(card);if(reason)return say(reason);}
       const from=CardMotion.handBefore().get(cn(card));resolvePending({card,akk:!!R.akkNext,from});if(!window.__qaydSlamArmed && !(window.QaidNet&&QaidNet.role==='guest'))sfx('throw');if(window.__qaydVibrate&&navigator.vibrate)navigator.vibrate(12);renderHand();
     };
-    e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();submit();}};
+    e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();if(!R.myTurn&&R.phase==='play'&&R.turn!==0){R.pre=R.pre===cn(card)?null:cn(card);renderHand();}else submit();}};
     e.onpointerenter=ev=>{if(R.myTurn&&!e.dragging&&ev.pointerType==='mouse')e.style.transform=base+' translateY(-26px)';};
     e.onpointerleave=()=>{if(!e.dragging)e.style.transform=base;};
     e.onpointerdown=ev=>{
-      if(!R.myTurn || paused())return;ev.preventDefault();e.setPointerCapture(ev.pointerId);
+      if(!R.myTurn){if(R.phase==='play'&&R.turn!==0&&!(window.QaidNet&&QaidNet.role==='guest')){ev.preventDefault();R.pre=R.pre===cn(card)?null:cn(card);sfx('click');if(window.__qaydVibrate&&navigator.vibrate)navigator.vibrate(8);renderHand();}return;}
+      if(paused())return;ev.preventDefault();e.setPointerCapture(ev.pointerId);
       const x=ev.clientX,y=ev.clientY;e.dragging=true;e.style.transition='none';e.style.zIndex=99;
       const move=event=>{const dx=event.clientX-x,dy=event.clientY-y;e.style.transform=`translate(${dx}px,${dy}px) rotate(${dx/12}deg)`;$('#rug').classList.toggle('drop',dy<-45);};
       const finish=event=>{
@@ -3509,6 +3511,14 @@ async function humanCard(token) {
   const promise=new Promise(resolve=>{pending=resolve;});
   startClock(()=>{if(R.n===0&&!R.pl[0].length)declare(0);const card=aiPick(0);resolvePending({card,from:center($('#hand'))});say('انتهى الوقت — رُمِيت ورقة مسموحة');},P.turnTime||25);
   renderHand();
+  if(R.pre){
+    const want=R.pre;R.pre=null;const card=R.h[0].find(c=>cn(c)===want);
+    if(card&&(cfg.mode==='free'||legal(0).includes(card))){
+      setTimeout(()=>{ if(token!==epoch||!R||!R.myTurn||!pending||!R.h[0].includes(card))return;
+        const from=CardMotion.handBefore().get(cn(card));sfx('throw');if(window.__qaydVibrate&&navigator.vibrate)navigator.vibrate(12);
+        resolvePending({card,akk:false,from});renderHand(); },260);
+    } else if(card){ say('الورقة اللي جهزتها ما تنلعب هنا — اختر غيرها'); renderHand(); }
+  }
   const result=await promise;ensure(token);R.myTurn=false;return result;
 }
 async function play(token) {
