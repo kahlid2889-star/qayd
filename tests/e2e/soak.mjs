@@ -18,8 +18,8 @@ for (let m = 0; m < MATCHES; m++) {
       if (sig !== st.sig) { st.sig = sig; st.last = Date.now(); } else if (Date.now() - st.last > 20000) { st.stall++; st.last = Date.now(); st.where = sig; }
       const ovOn = document.querySelector("#ov").classList.contains("on");
       if (ovOn) { const nx = document.querySelector("#nx"); if (nx) { if (/نهاية اللعبة/.test(document.querySelector("#ob").innerText)) st.over = true; else st.rounds++; nx.click(); return; }
-        const yes = document.querySelector("#claim-yes"); if (yes) { yes.click(); return; }
-        const go = document.querySelector("#ob.qaid-catch .qc-go"); if (go) { const k = document.querySelector(".qc-kind:not(.off)"); if (k && !k.classList.contains("on")) k.click(); const s = document.querySelectorAll(".qc-slot"); if (s.length >= 2) { if (!s[0].dataset.tag) s[0].click(); if (!s[1].dataset.tag) s[1].click(); go.click(); } else document.querySelector(".qc-close")?.click(); return; }
+        const yes = document.querySelector("#claim-yes") || document.querySelector("#qaid-yes"); if (yes) { yes.click(); return; }
+        const go = document.querySelector("#ob.qaid-catch .qc-go"); if (go) { const k = document.querySelector(".qc-kind:not(.off)"); if (k && !k.classList.contains("on")) k.click(); const s = document.querySelectorAll(".qc-slot"); if (s.length >= 2) { if (!s[0].dataset.tag) s[0].click(); if (!s[1].dataset.tag) s[1].click(); go.click(); } return; }
         document.querySelector("#ob button")?.click(); return; }
       if (!R || !pending) return;
       if (R.phase === "play" && R.myTurn) {

@@ -3968,15 +3968,40 @@ async function showSawaDrop(token, player) {
   const layer = document.getElementById('drop-layer');
   if (layer) layer.remove();
 }
+/* A card reference in a qayd: [trick, seat, suit, rank]; trick -1 means "still in that player's hand". */
+function qaydCardAt(ref) {
+  const [t, p, cs, cr] = ref;
+  if (t === -1) return (R.h[p] || []).some(c => c.s === cs && c.r === cr) ? { p, c: { s: cs, r: cr }, held: true, trick: -1 } : null;
+  const plays = t === R.n ? (R.trick || []) : ((R.last || [])[R.n - 1 - t] || {}).t || [];
+  const hit = plays.find(x => x.p === p && x.c.s === cs && x.c.r === cr);
+  return hit ? { p, c: hit.c, held: false, trick: t } : null;
+}
+/* Does this card prove the violation? Same tests the table uses when a card lands (noteReveal),
+   and they hold just as well for a card the cheater is still holding. */
+function qaydProves(v, proof) {
+  const card = proof.c, own = proof.p === v.p, later = proof.held || proof.trick > v.trickIndex;
+  if (samePublic(card, v.card) && proof.p === v.p) return false;
+  if (v.kind === 'qati') return own && later && v.lead != null && card.s === v.lead;
+  if (v.kind === 'ma-daq') return own && later && card.s === v.trump;
+  if (v.kind === 'ma-kabbar') return own && later && card.s === v.trump && v.needTrump != null && TP[card.r] > TP[v.needTrump];
+  if (v.kind === 'rabaa') return own && later && v.trump != null && card.s !== v.trump;
+  if (v.kind === 'akka') return card.s === v.card.s && OP[card.r] > OP[v.card.r] && (proof.held || proof.trick >= v.trickIndex);
+  return false;
+}
 function matchQayd(accuser, picks) {
   if (!R || !Array.isArray(R.violations) || !picks || !QAYD_NAME[picks.kind] || !Array.isArray(picks.reveal) || !Array.isArray(picks.cheat)) return null;
   const a = picks.reveal.map(Number), b = picks.cheat.map(Number);
   if (a.length !== 4 || b.length !== 4 || a.concat(b).some(n => !Number.isInteger(n))) return null;
   const opp = 1 - (accuser % 2);
-  return R.violations.find(v => !v.caught && v.kind === picks.kind && v.p % 2 === opp && v.reveal && v.revealSeat != null && (
-    (v.revealTrick === a[0] && v.revealSeat === a[1] && v.reveal.s === a[2] && v.reveal.r === a[3] && v.trickIndex === b[0] && v.p === b[1] && v.card.s === b[2] && v.card.r === b[3]) ||
-    (v.revealTrick === b[0] && v.revealSeat === b[1] && v.reveal.s === b[2] && v.reveal.r === b[3] && v.trickIndex === a[0] && v.p === a[1] && v.card.s === a[2] && v.card.r === a[3])
-  )) || null;
+  // Either order: one card is the cheat (always a played card), the other is the proof (played or held).
+  for (const [cheat, proofRef] of [[b, a], [a, b]]) {
+    const v = R.violations.find(x => !x.caught && x.kind === picks.kind && x.p % 2 === opp &&
+      x.trickIndex === cheat[0] && x.p === cheat[1] && x.card.s === cheat[2] && x.card.r === cheat[3]);
+    if (!v) continue;
+    const proof = qaydCardAt(proofRef);
+    if (proof && qaydProves(v, proof)) return v;
+  }
+  return null;
 }
 function applyQayd(accuser, hit) {
   const team = accuser % 2;
@@ -4126,12 +4151,50 @@ window.qaydSpectate = function (state, snapshot) {
     row.append(name, cross);
     list.append(row);
   });
+  list.append(qaydHands((pid) => (pid === state.reveal ? 'كشف' : pid === state.cheat ? 'غش' : ''), null));
   root.append(head, note, kinds, desc, list);
 };
+/* Every player's remaining cards, by name. `tagOf(pid)` marks picked cards; `onPick` makes them tappable. */
+function qaydHands(tagOf, onPick) {
+  const wrap = document.createElement('div'); wrap.className = 'qc-hands';
+  const title = document.createElement('b'); title.className = 'qc-hands-title'; title.textContent = 'الورق اللي بيد كل لاعب';
+  wrap.append(title);
+  [2, 1, 3, 0].forEach((p) => {
+    const row = document.createElement('section'); row.className = 'qc-hand' + (p % 2 === 0 ? ' us' : ' them');
+    const who = document.createElement('b'); who.className = 'qc-hand-name'; who.textContent = p === 0 ? (P.name || 'أنت') : NM(p);
+    const role = document.createElement('small'); role.textContent = p === 0 ? 'أنت' : p === 2 ? 'خويّك' : 'الخصم';
+    who.append(role);
+    const cards = document.createElement('div'); cards.className = 'qc-hand-cards';
+    const hand = ((R && R.h[p]) || []).slice();
+    try { sortH(hand); } catch (e) { /* keep order */ }
+    hand.forEach((c) => {
+      const pid = '-1:' + p + ':' + c.s + ':' + c.r;
+      const btn = document.createElement(onPick ? 'button' : 'div');
+      if (onPick) btn.type = 'button';
+      btn.className = 'qc-slot qc-held'; btn.dataset.pid = pid;
+      btn.setAttribute('aria-label', who.firstChild.textContent + ' — ' + cn(c) + ' (بيده)');
+      const tag = tagOf(pid); if (tag) { btn.classList.add('on'); btn.dataset.tag = tag; }
+      const face = cardEl(c); face.style.pointerEvents = 'none'; btn.append(face);
+      if (onPick) btn.onclick = () => onPick(pid);
+      cards.append(btn);
+    });
+    if (!hand.length) { const none = document.createElement('i'); none.className = 'qc-hand-none'; none.textContent = 'ما بقي بيده ورق'; cards.append(none); }
+    row.append(who, cards); wrap.append(row);
+  });
+  return wrap;
+}
 
 function qaid() {
   if(!R||R.phase!=='play')return;
   if(!R.myTurn||!pending)return say('قيدها في دورك، قبل ما ترمي');
+  // Opening the qayd shows every hand, so there is no way back: ask once, then it is final.
+  ov('<h2>تقيّدها؟</h2><p>القيد يكشف ورق الكل وينهي الصكة. إذا قيدك صحيح الصكة لكم، وإذا غلط أو خلص الوقت الصكة للخصم. ما فيه رجوع بعد الفتح.</p><div class="row2"><button class="wide" id="qaid-no" type="button">لا، أكمل لعب</button><button class="cta" id="qaid-yes" type="button">قيدها</button></div>');
+  $('#qaid-no').onclick=()=>{sfx('click');closeOv();};
+  $('#qaid-yes').onclick=()=>{sfx('click');if(!R||R.phase!=='play'||!R.myTurn||!pending){closeOv();return say('انتهى دورك');}qaidOpen();};
+}
+function qaidOpen() {
+  if(!R||R.phase!=='play'||!R.myTurn||!pending)return;
+  clearTimer(); /* the round ends here either way: the turn clock no longer matters */
   stopQaidClock();
   const all=[];
   if(R.trick.length)all.push({trick:R.n,cards:R.trick.slice()});
@@ -4144,8 +4207,7 @@ function qaid() {
   const head=document.createElement('div');head.className='qc-head';
   const title=document.createElement('h2');title.className='qc-title';title.textContent='قيدها';
   const time=document.createElement('b');time.className='qc-time';time.textContent='30';
-  const shut=document.createElement('button');shut.type='button';shut.className='qc-close';shut.setAttribute('aria-label','تراجع وارجع للعب');shut.textContent='✕';
-  head.append(title,time,shut);
+  head.append(title,time);
   const kinds=document.createElement('div');kinds.className='qc-kinds';kinds.setAttribute('role','radiogroup');kinds.setAttribute('aria-label','نوع القيد');
   const desc=document.createElement('p');desc.className='qc-desc';
   const box=document.createElement('div');box.className='qc-ask';
@@ -4161,8 +4223,8 @@ function qaid() {
     const step=!picks.kind?0:!picks.reveal?1:!picks.cheat?2:3;
     root.dataset.step=String(step);
     prompt.className='qc-prompt '+(hint?'bad':step<3?'ask':'go');
-    prompt.textContent=hint||(step===0?'١ · اختر نوع القيد':step===1?'٢ · اختر ورقة الكشف':step===2?'٣ · اختر ورقة الغش':'جاهز — أكّد القيد');
-    desc.textContent=picks.kind?QAYD_INFO[picks.kind].d:'كل الأنواع قدامك. القيد الغلط يعطي الصكة للخصم.';
+    prompt.textContent=hint||(step===0?'١ · اختر نوع القيد':step===1?'٢ · اختر ورقة الكشف (ملعوبة أو بيده)':step===2?'٣ · اختر ورقة الغش':'جاهز — أكّد القيد');
+    desc.textContent=picks.kind?QAYD_INFO[picks.kind].d:'ورق الكل مكشوف قدامك. القيد الغلط أو انتهاء الوقت يعطي الصكة للخصم.';
     desc.classList.toggle('on',!!picks.kind);
     go.classList.toggle('ready',step===3);
     root.querySelectorAll('.qc-slot').forEach(btn=>{
@@ -4185,7 +4247,6 @@ function qaid() {
     finished=true;stopQaidClock();qaydPublish(false);closeOv();
     if(value&&pending)resolvePending(value);
   }
-  shut.onclick=()=>{sfx('click');endReview(null);say('تراجعت عن القيد — كمّل لعبك');};
   // Every kind is always listed. Showing only the "open" ones would tell the
   // player which violation happened before he spots it himself.
   ['qati','ma-daq','ma-kabbar','rabaa','akka'].forEach(id=>{
@@ -4219,6 +4280,7 @@ function qaid() {
     row.append(name,cross);list.append(row);
   });
   if(!all.length){const empty=document.createElement('p');empty.className='qc-empty';empty.textContent='لما تنزل أكلة تقدر تقيدها.';list.append(empty);}
+  list.append(qaydHands((id)=>'',choose));
   root.append(head,kinds,desc,box,list,go);
   paint();
   qaydPublish(true, picks);
@@ -4228,7 +4290,7 @@ function qaid() {
     if(!picks.kind){hint='اختر نوع القيد';paint();return;}
     if(!picks.reveal||!picks.cheat){hint='اختر الورقتين أول';paint();return;}
     const a=picks.reveal.split(':').map(Number),b=picks.cheat.split(':').map(Number);
-    if(!pending||!R||!R.myTurn){endReview(null);say('انتهى دورك قبل تأكيد القيد');return;}
+    if(!pending||!R||!R.myTurn){endReview(null);return;}
     R.qaydSent={ kind: picks.kind, reveal: a, cheat: b };
     applyQayd(0, matchQayd(0, { kind: picks.kind, reveal: a, cheat: b }));
     endReview({qayd:true});
@@ -4244,7 +4306,7 @@ function qaid() {
     bar.firstElementChild.classList.toggle('hot',left<=10000);
     time.classList.toggle('hot',left<=10000);
     time.textContent=String(Math.max(0,Math.ceil(left/1000)));
-    if(left<=0){sfx('click');say('انتهى وقت القيد');endReview(null);}
+    if(left<=0){sfx('click');say('انتهى وقت القيد — الصكة للخصم');R.qaydSent={kind:'none',reveal:[0,0,0,0],cheat:[0,0,0,0]};applyQayd(0,null);endReview({qayd:true});}
   },100);
 }
 function claimStamp() {

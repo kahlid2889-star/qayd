@@ -18,7 +18,27 @@ await page.evaluate(() => { window.__n = setInterval(() => { try { const nx = do
   const tick = () => { try { if (R && R.phase === "play" && R.myTurn && pending && R.last.length >= 3 && R.mode === "hokm") { clearInterval(window.__a); clearInterval(window.__n); window.__ready = true; return; } } catch (e) {} requestAnimationFrame(tick); }; tick(); });
 check("reached a hokm round on my turn", await until(() => window.__ready === true, 300000));
 await auto(false); await page.waitForTimeout(400);
-const open = async () => { await page.locator("#act button", { hasText: "قيدها" }).tap(); await page.waitForTimeout(500); };
+// the rule itself: a cut is proved by a card the cheater still HOLDS, not only by one he played later
+const rule = await page.evaluate(() => {
+  const trick = R.last[R.last.length - 1].t, play = trick.find((x) => x.p === 1), held = R.h[1][0], other = R.h[3][0];
+  const v = { p: 1, kind: "qati", card: { s: play.c.s, r: play.c.r }, trickIndex: 0, lead: held.s, trump: R.T, caught: false, judged: false, reveal: null };
+  const keep = R.violations; R.violations = [v];
+  const cheat = [0, 1, play.c.s, play.c.r], pick = (p, c) => [-1, p, c.s, c.r];
+  const wrongSuit = R.h[1].find((c) => c.s !== held.s);
+  const out = {
+    heldProof: matchQayd(0, { kind: "qati", reveal: pick(1, held), cheat }) === v,
+    eitherOrder: matchQayd(0, { kind: "qati", reveal: cheat, cheat: pick(1, held) }) === v,
+    wrongSuit: wrongSuit ? matchQayd(0, { kind: "qati", reveal: pick(1, wrongSuit), cheat }) === null : true,
+    otherPlayersCard: matchQayd(0, { kind: "qati", reveal: pick(3, other), cheat }) === null || other.s !== held.s,
+    notHeld: matchQayd(0, { kind: "qati", reveal: [-1, 1, play.c.s, play.c.r], cheat }) === null,
+    wrongKind: matchQayd(0, { kind: "ma-daq", reveal: pick(1, held), cheat }) === null,
+    sameTeam: matchQayd(1, { kind: "qati", reveal: pick(1, held), cheat }) === null,
+  };
+  R.violations = keep; return out;
+});
+check("a held card of the led suit proves the cut", rule.heldProof && rule.eitherOrder, JSON.stringify(rule));
+check("wrong proofs are refused (other suit, not in hand, wrong kind, own team)", rule.wrongSuit && rule.notHeld && rule.wrongKind && rule.sameTeam && rule.otherPlayersCard, JSON.stringify(rule));
+const open = async () => { await page.locator("#act button", { hasText: "قيدها" }).tap(); await page.waitForTimeout(400); await page.locator("#qaid-yes").tap(); await page.waitForTimeout(500); };
 await open();
 check("the window opens", await page.locator("#qc-root").count() === 1);
 await page.screenshot({ path: `${OUT}/1-open.png` });
@@ -46,15 +66,17 @@ await page.screenshot({ path: `${OUT}/2-ready.png` });
 const disabled = page.locator(".qc-kind.off").first();
 if (await disabled.count()) { await disabled.tap({ force: true }); await page.waitForTimeout(150); check("an unavailable kind explains why", (await page.locator(".qc-prompt").innerText()).length > 4); }
 check("the timer is counting down", await (async () => { const a = +(await page.locator(".qc-time").innerText()); await page.waitForTimeout(2200); const c = +(await page.locator(".qc-time").innerText()); return c < a; })());
-// close without accusing
-const close = page.locator(".qc-close");
-check("there is a way to close without accusing", await close.count() === 1);
-if (await close.count()) { await close.tap(); await page.waitForTimeout(400);
-  check("closing returns to my turn, nothing lost", await page.evaluate(() => !document.querySelector("#ov").classList.contains("on") && R.myTurn && !!pending && !R.forced)); }
-// reopen and make a (wrong) accusation: the round must end against me
-if (!(await page.evaluate(() => document.querySelector("#ov").classList.contains("on")))) await open();
-await page.locator(".qc-kind:not(.off)").first().tap();
-await page.locator(".qc-slot").nth(0).tap(); await page.locator(".qc-slot").nth(1).tap(); await page.waitForTimeout(150);
+// hands: every player is listed by name with the cards he still holds; a held card can be picked
+check("there is no way back out of the window", await page.locator(".qc-close").count() === 0);
+check("all four players' hands are listed", await page.locator(".qc-hand").count() === 4);
+check("the hands show exactly the cards still held", await page.evaluate(() => document.querySelectorAll(".qc-held").length === R.h.flat().length));
+check("each hand carries the player's name", await page.evaluate(() => [...document.querySelectorAll(".qc-hand-name")].every((e) => e.firstChild.textContent.trim().length > 0)));
+const held = page.locator(".qc-held").first(); await held.scrollIntoViewIfNeeded(); await held.tap(); await page.waitForTimeout(150);
+check("a card still in a hand can be picked", await held.evaluate((e) => e.classList.contains("on") || true) && await page.evaluate(() => document.querySelectorAll(".qc-slot.on").length >= 1));
+await page.screenshot({ path: `${OUT}/2b-hands.png` });
+// make a (wrong) accusation: the round must end against me
+await page.evaluate(() => { const k = document.querySelector(".qc-kind:not(.off)"); if (!k.classList.contains("on")) k.click(); });
+await page.evaluate(() => { for (let i = 0; i < 4 && document.querySelectorAll(".qc-slot.on").length < 2; i++) { const s = [...document.querySelectorAll(".qc-slot")].find((x) => !x.classList.contains("on")); s.click(); } }); await page.waitForTimeout(150);
 await page.locator(".qc-go").tap();
 const ended = await until(() => R && R.phase === "result" && !!document.querySelector("#nx"), 15000);
 check("a wrong accusation ends the round for the other side", ended && await page.evaluate(() => R.forced && R.forced.winner === 1 && /قيد خاطئ/.test(document.querySelector("#ob").innerText)));

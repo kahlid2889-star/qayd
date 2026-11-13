@@ -4703,7 +4703,21 @@ html #ob.qaid-catch .qc-slot[data-tag="غش"].on::after { background: #ef5d6f; c
 html #ob.qaid-catch .qc-go { flex: none; width: 100%; min-height: 52px !important; margin: 0; border-radius: 16px !important; font: 800 19px/1 Tajawal, sans-serif !important; opacity: .55; transition: opacity .2s, transform .12s; }
 html #ob.qaid-catch .qc-go.ready { opacity: 1; }
 html #ob.qaid-catch .qc-go:active { transform: scale(.985); }
-html #ob.qc-watch .qc-close { display: none !important; }
+/* every player's remaining cards */
+html #ob.qaid-catch .qc-hands { grid-column: 1 / -1; display: grid; gap: 8px; margin-top: 4px; }
+html #ob.qaid-catch .qc-hand { display: grid; gap: 6px; padding: 8px 10px 10px; border-radius: 14px; border: 1px solid var(--c-border); background: var(--c-raise); border-inline-start-width: 4px; }
+html #ob.qaid-catch .qc-hand.us { border-inline-start-color: var(--c-success); }
+html #ob.qaid-catch .qc-hand.them { border-inline-start-color: var(--c-danger); }
+html #ob.qaid-catch .qc-hand-name { display: flex; align-items: baseline; gap: 8px; font: 800 14px/1.3 Tajawal, sans-serif; color: var(--c-text); }
+html #ob.qaid-catch .qc-hand-name small { font: 700 11px/1.3 Tajawal, sans-serif; color: var(--c-text-2); }
+html #ob.qaid-catch .qc-hand-cards { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px 5px; min-height: 49px; align-items: flex-start; padding-bottom: 6px; }
+html #ob.qaid-catch .qc-hand-none { font: 700 12px/1.3 Tajawal, sans-serif; font-style: normal; color: var(--c-text-2); }
+html #ob.qaid-catch .qc-slot.qc-held { position: relative !important; inset: auto !important; top: auto !important; left: auto !important; right: auto !important; bottom: auto !important; width: 34px !important; height: 49px !important; flex: none; }
+html #ob.qaid-catch .qc-slot.qc-held .cd { --cw: 34px !important; }
+
+html #ob.qaid-catch .qc-cross { height: 152px !important; }
+html #ob.qaid-catch .qc-slot:not(.qc-held) { height: 58px !important; }
+html #ob.qaid-catch .qc-slot.pos-right:not(.qc-held), html #ob.qaid-catch .qc-slot.pos-left:not(.qc-held) { top: calc(50% - 29px) !important; }
 @media (max-width: 360px) {
   html #ob.qaid-catch .qc-cross { height: 128px !important; }
   html #ob.qaid-catch .qc-slot { width: 34px !important; height: 47px !important; }
