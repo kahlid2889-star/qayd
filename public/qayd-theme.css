@@ -1,0 +1,448 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   قيد QAYD — official colour identity. The ONE place colours are defined.
+
+   Three themes, each with the same nine official colours. Everything else in the
+   game (and the account / online windows, see src/lib/qayd/theme.ts) reads these
+   tokens; nothing may hard-code a colour of its own.
+
+   To add a theme: copy one block, change the nine values, add its name to
+   THEMES in public/qayd-js/03-game.js (theme()) and src/lib/qayd/theme.ts.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* 1 · التراثي — Burgundy & Cream (default) */
+html:root, html:root[data-theme="trad"] {
+  --c-bg: #F3E8D5;        /* الخلفية */
+  --c-surface: #E5D3B8;   /* الأسطح والبطاقات */
+  --c-primary: #641F32;   /* الأساسي */
+  --c-secondary: #7D293F; /* الثانوي */
+  --c-deep: #451523;      /* الداكن */
+  --c-accent: #B9945B;    /* المساعد */
+  --c-text: #38252A;      /* النص */
+  --c-text-2: #806D68;    /* النص الثانوي */
+  --c-border: #D4C1A9;    /* الحدود */
+
+  --c-on-primary: #F3E8D5;          /* text on primary / deep */
+  --c-on-accent: #38252A;           /* text on the accent colour */
+  --c-link: #641F32;                /* coloured text and icons on the background */
+  --c-trim: #B9945B;                /* fine lines, rings, small highlights */
+  --c-primary-hover: #7D293F;
+  --c-primary-active: #451523;
+  --c-chrome: #451523;              /* game header and dock */
+  --c-on-chrome: #F3E8D5;
+  --c-danger: #A32D3F;              /* errors, the other team */
+  --c-success: #3D7A52;             /* confirmations, our team */
+  color-scheme: light;
+}
+
+/* 2 · الفاتح — White & Blue */
+html:root[data-theme="light"] {
+  --c-bg: #FFFFFF;
+  --c-surface: #F2F6FA;
+  --c-primary: #397DB8;
+  --c-secondary: #20547F;
+  --c-deep: #173B5B;
+  --c-accent: #DCEAF7;
+  --c-text: #243447;
+  --c-text-2: #718096;
+  --c-border: #DCE4EC;
+
+  --c-on-primary: #FFFFFF;
+  --c-on-accent: #173B5B;
+  --c-link: #20547F;
+  --c-trim: #397DB8;
+  --c-primary-hover: #20547F;
+  --c-primary-active: #173B5B;
+  --c-chrome: #173B5B;
+  --c-on-chrome: #FFFFFF;
+  --c-danger: #C0394B;
+  --c-success: #2E8B62;
+  color-scheme: light;
+}
+
+/* 3 · الداكن — Charcoal & Green */
+html:root[data-theme="dark"] {
+  --c-bg: #101211;
+  --c-surface: #191E1B;
+  --c-primary: #315B40;
+  --c-secondary: #6C9A72;
+  --c-deep: #25352B;
+  --c-accent: #6C9A72;
+  --c-text: #E8EEE8;
+  --c-text-2: #A5B1A7;
+  --c-border: #303B33;
+
+  --c-on-primary: #E8EEE8;
+  --c-on-accent: #101211;
+  --c-link: #6C9A72;
+  --c-trim: #6C9A72;
+  --c-primary-hover: #3D7050;
+  --c-primary-active: #25352B;
+  --c-chrome: #191E1B;
+  --c-on-chrome: #E8EEE8;
+  --c-danger: #E0707F;
+  --c-success: #7FC79A;
+  color-scheme: dark;
+}
+
+/* ── derived from the nine: states, surfaces, shadows. Same recipe in every theme. ── */
+html:root {
+  --c-raise: color-mix(in srgb, var(--c-surface) 45%, var(--c-bg));           /* inputs, tiles on a surface */
+  --c-sunk: color-mix(in srgb, var(--c-surface) 82%, var(--c-text));          /* pressed wells, tracks */
+  --c-selected: color-mix(in srgb, var(--c-primary) 14%, var(--c-bg));        /* selected option fill */
+  --c-hover: color-mix(in srgb, var(--c-primary) 7%, var(--c-surface));       /* hover on a neutral control */
+  --c-disabled: color-mix(in srgb, var(--c-text-2) 22%, var(--c-surface));
+  --c-on-disabled: var(--c-text-2);
+  --c-focus: var(--c-trim);
+  --c-overlay: color-mix(in srgb, var(--c-deep) 64%, transparent);
+  --c-shadow: color-mix(in srgb, var(--c-deep) 26%, transparent);
+  --c-shadow-strong: color-mix(in srgb, var(--c-deep) 46%, transparent);
+  --c-chrome-line: color-mix(in srgb, var(--c-on-chrome) 16%, transparent);
+  --c-chrome-control: color-mix(in srgb, var(--c-on-chrome) 10%, transparent);
+  --c-chrome-muted: color-mix(in srgb, var(--c-on-chrome) 70%, var(--c-chrome));
+  --c-scene: radial-gradient(ellipse 120% 80% at 50% 38%, var(--c-bg) 0%, color-mix(in srgb, var(--c-bg) 86%, var(--c-surface)) 60%, var(--c-surface) 100%);
+  --c-btn: linear-gradient(180deg, var(--c-secondary), var(--c-primary));     /* primary button face */
+  --c-btn-pressed: linear-gradient(180deg, var(--c-primary), var(--c-deep));
+  --c-pass: color-mix(in srgb, var(--c-on-chrome) 22%, var(--c-chrome));      /* "pass" / neutral action */
+
+  /* the baloot board */
+  --velvet: var(--c-primary);
+  --velvet-hi: var(--c-secondary);
+  --velvet-lo: var(--c-deep);
+  --board: color-mix(in srgb, var(--c-bg) 35%, #FFFFFF);
+  --board-lo: color-mix(in srgb, var(--c-surface) 70%, #FFFFFF);
+  --board-edge: var(--c-accent);
+  --board-edge-lo: color-mix(in srgb, var(--c-accent) 62%, var(--c-deep));
+  --board-shadow: var(--c-shadow-strong);
+}
+html:root[data-theme="light"] {
+  --velvet: var(--c-primary);
+  --velvet-hi: color-mix(in srgb, var(--c-primary) 72%, #FFFFFF);
+  --velvet-lo: var(--c-secondary);
+  --board: #FFFFFF;
+  --board-lo: var(--c-surface);
+  --board-edge: color-mix(in srgb, var(--c-primary) 30%, var(--c-border));
+  --board-edge-lo: color-mix(in srgb, var(--c-secondary) 45%, var(--c-border));
+  --c-btn: linear-gradient(180deg, var(--c-primary), var(--c-secondary));
+  --c-btn-pressed: linear-gradient(180deg, var(--c-secondary), var(--c-deep));
+}
+html:root[data-theme="dark"] {
+  --velvet: var(--c-primary);
+  --velvet-hi: color-mix(in srgb, var(--c-primary) 62%, var(--c-secondary));
+  --velvet-lo: var(--c-deep);
+  --board: color-mix(in srgb, var(--c-deep) 70%, var(--c-border));
+  --board-lo: var(--c-surface);
+  --board-edge: var(--c-border);
+  --board-edge-lo: var(--c-bg);
+  --c-raise: color-mix(in srgb, var(--c-surface) 78%, var(--c-border));
+  --c-sunk: color-mix(in srgb, var(--c-bg) 70%, var(--c-surface));
+  --c-selected: color-mix(in srgb, var(--c-primary) 42%, var(--c-surface));
+  --c-overlay: color-mix(in srgb, #000000 68%, transparent);
+  --c-shadow: color-mix(in srgb, #000000 42%, transparent);
+  --c-shadow-strong: color-mix(in srgb, #000000 62%, transparent);
+  --c-btn: linear-gradient(180deg, var(--c-primary-hover), var(--c-primary));
+  --c-btn-pressed: linear-gradient(180deg, var(--c-primary), var(--c-deep));
+}
+
+/* ── names the older style sections still read. They only point at the tokens above. ── */
+html:root, html:root[data-theme] {
+  --bg: var(--c-bg); --pn: var(--c-primary); --pt: var(--c-on-primary); --ink: var(--c-text);
+  --acc: var(--c-trim); --ac2: color-mix(in srgb, var(--c-trim) 72%, var(--c-deep)); --sh: var(--c-shadow);
+  --b1: var(--c-secondary); --b2: var(--c-primary); --bt: var(--c-on-primary);
+  --rug: var(--c-primary); --rg2: var(--c-secondary); --cb: var(--c-primary); --cb2: var(--c-trim);
+  --menu-bg: var(--c-bg); --surface: var(--c-raise); --surface-soft: var(--c-surface); --menu-ink: var(--c-text);
+  --muted: var(--c-text-2); --rose: var(--c-link); --rose-deep: var(--c-deep); --trim: var(--c-trim); --line: var(--c-border);
+  --soft-shadow: 0 8px 24px var(--c-shadow); --focus: var(--c-focus); --brand-logo: var(--c-link);
+  --home-play: var(--c-primary); --home-play-ink: var(--c-on-primary); --home-online: var(--c-surface); --home-online-ink: var(--c-text);
+  --home-gold: var(--c-trim); --home-edge: var(--c-border); --home-shadow: 0 10px 24px var(--c-shadow);
+  --on-bg: var(--c-bg); --on-surface: var(--c-raise); --on-ink: var(--c-text); --on-accent: var(--c-primary); --on-accent-ink: var(--c-on-primary);
+  --qb-bg: var(--c-bg); --qb-surface: var(--c-raise); --qb-soft: var(--c-surface); --qb-ink: var(--c-text); --qb-muted: var(--c-text-2);
+  --qb-primary: var(--c-primary); --qb-primary-hover: var(--c-primary-hover); --qb-primary-ink: var(--c-on-primary); --qb-accent: var(--c-link);
+  --qb-gold: var(--c-trim); --qb-gold-deep: color-mix(in srgb, var(--c-trim) 70%, var(--c-deep)); --qb-line: var(--c-border); --qb-focus: var(--c-focus);
+  --qb-chrome: var(--c-chrome); --qb-chrome-ink: var(--c-on-chrome); --qb-chrome-line: var(--c-chrome-line);
+  --qb-chrome-control: var(--c-chrome-control); --qb-chrome-control-ink: var(--c-on-chrome);
+  --qb-game-action: var(--c-primary); --qb-game-action-hover: var(--c-primary-hover); --qb-game-action-ink: var(--c-on-primary);
+  --qb-floor: var(--c-surface); --qb-floor-light: var(--c-bg); --qb-back: var(--c-primary); --qb-back-trim: var(--c-trim);
+  --qb-overlay: var(--c-overlay); --qb-error: var(--c-danger); --qb-success: var(--c-success); --qb-shadow: var(--c-shadow);
+  --v9-ink: var(--c-on-chrome); --v9-muted: var(--c-chrome-muted); --v9-glass: color-mix(in srgb, var(--c-chrome) 94%, transparent);
+  --v9-glass-2: var(--c-chrome-control); --v9-line: var(--c-chrome-line); --v9-gold: color-mix(in srgb, var(--c-accent) 70%, var(--c-on-chrome));
+  --v9-us: var(--c-success); --v9-them: var(--c-danger); --v9-blue: var(--c-primary);
+  --seat-surface: var(--c-chrome); --seat-ink: var(--c-on-chrome);
+  --motion-back-base: var(--c-primary); --motion-back-cream: var(--c-on-primary); --motion-back-thread: var(--c-trim);
+  --splash-bg: var(--c-bg); --splash-ink: var(--c-primary); --splash-glow: var(--c-shadow); --splash-bar: var(--c-primary);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Components. Every surface takes its colours from the tokens above.
+   T = the prefix that outranks the older sections.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── foundation ── */
+html:root[data-theme] body, html:root[data-theme] body .scr { background-color: var(--c-bg) !important; color: var(--c-text); }
+html:root[data-theme] body :focus-visible { outline: 2px solid var(--c-focus) !important; outline-offset: 2px !important; }
+html:root[data-theme] body ::selection { background: color-mix(in srgb, var(--c-primary) 30%, transparent); }
+html:root[data-theme] body .note { color: var(--c-text-2) !important; }
+html:root[data-theme] body button { -webkit-tap-highlight-color: transparent; }
+
+/* ── splash ── */
+html:root[data-theme] body #sp { background: var(--c-scene) !important; }
+html:root[data-theme] body #sp .id-word, html:root[data-theme] body #sp .home-splash-tagline { color: var(--c-primary) !important; }
+html:root[data-theme="dark"] body #sp .id-word, html:root[data-theme="dark"] body #sp .home-splash-tagline { color: var(--c-secondary) !important; }
+html:root[data-theme] body #sp .id-bar { background: var(--c-border) !important; }
+html:root[data-theme] body #sp .id-bar b { background: var(--c-primary) !important; }
+html:root[data-theme] body #sp .id-fly { color: color-mix(in srgb, var(--c-primary) 40%, transparent) !important; }
+html:root[data-theme] body #sp .home-splash-rule { background: var(--c-trim) !important; }
+
+/* ── home ── */
+html:root[data-theme] body #mn.on { background: var(--c-scene) !important; color: var(--c-text) !important; }
+html:root[data-theme] body #mn .home-identity-bar { border-color: var(--c-border) !important; background: transparent !important; }
+html:root[data-theme] body #mn .ib {
+  background: var(--c-raise) !important; color: var(--c-link) !important; border: 1px solid var(--c-border) !important; box-shadow: 0 2px 6px var(--c-shadow) !important;
+}
+html:root[data-theme] body #mn .ib:hover { background: var(--c-hover) !important; }
+html:root[data-theme] body #mn .ib:active { background: var(--c-selected) !important; transform: scale(.95); }
+html:root[data-theme] body #mn #bell-count { background: var(--c-danger) !important; color: #FFFFFF !important; }
+html:root[data-theme] body #mn .eyebrow { color: var(--c-link) !important; }
+html:root[data-theme] body #mn #pn { color: var(--c-text) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html:root[data-theme] body #mn .home-identity .note, html:root[data-theme] body #mn .home-hero-note { color: var(--c-text-2) !important; }
+html:root[data-theme] body #mn .home-identity .av { background: var(--c-raise) !important; border: 2px solid var(--c-trim) !important; box-shadow: 0 6px 16px var(--c-shadow) !important; }
+html:root[data-theme] body .player-mark { background: var(--c-raise) !important; color: var(--c-danger) !important; }
+html:root[data-theme] body .player-mark.ink { color: var(--c-text) !important; }
+html:root[data-theme] body #mn .home-hero-title, html:root[data-theme] body #mn .home-hero-title .subtitle {
+  color: var(--c-link) !important; background: none !important; -webkit-text-fill-color: currentColor !important; text-shadow: none !important;
+}
+html:root[data-theme] body #mn .rank-stage-meta {
+  background: var(--c-raise) !important; border: 1px solid var(--c-trim) !important; box-shadow: 0 8px 20px var(--c-shadow) !important; color: var(--c-text) !important;
+}
+html:root[data-theme] body #mn .rank-stage-meta b { color: var(--c-text) !important; }
+html:root[data-theme] body #mn .rank-stage-meta em { color: var(--c-text-2) !important; }
+html:root[data-theme] body #mn .rank-stage-meta small { background: var(--c-bg) !important; color: var(--c-link) !important; border: 1px solid var(--c-border) !important; }
+html:root[data-theme] body #mn .rank-xp, html:root[data-theme] body .rank-xp { background: var(--c-sunk) !important; }
+html:root[data-theme] body #mn .rank-xp > *, html:root[data-theme] body .rank-xp > i { background: var(--c-trim) !important; }
+html:root[data-theme] body #mn .home-hero-art { filter: drop-shadow(0 10px 14px var(--c-shadow)) !important; }
+
+html:root[data-theme] body #mn #go {
+  background: var(--c-btn) !important; color: var(--c-on-primary) !important; border: 1px solid var(--c-trim) !important;
+  box-shadow: 0 6px 0 var(--c-deep), 0 14px 26px var(--c-shadow-strong) !important;
+}
+html:root[data-theme] body #mn #go:hover { filter: brightness(1.06); }
+html:root[data-theme] body #mn #go:active { background: var(--c-btn-pressed) !important; transform: translateY(3px); box-shadow: 0 3px 0 var(--c-deep), 0 8px 16px var(--c-shadow) !important; }
+html:root[data-theme] body #mn #go .home-action-label, html:root[data-theme] body #mn #go .home-action-arrow { color: var(--c-on-primary) !important; background: none !important; box-shadow: none !important; }
+html:root[data-theme] body #mn #go small { color: color-mix(in srgb, var(--c-on-primary) 82%, transparent) !important; }
+
+html:root[data-theme] body #mn .home-record { background: transparent !important; border-color: var(--c-border) !important; box-shadow: none !important; }
+html:root[data-theme] body #mn .home-record-title { color: var(--c-link) !important; }
+html:root[data-theme] body #mn .home-record .sts > div { color: var(--c-text-2) !important; border-color: var(--c-border) !important; }
+html:root[data-theme] body #mn .home-record .sts b { color: var(--c-text) !important; }
+html:root[data-theme] body #mn .home-record .sts small { color: var(--c-link) !important; }
+html:root[data-theme] body #mn .home-secondary-row > button {
+  background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; box-shadow: 0 4px 12px var(--c-shadow) !important;
+}
+html:root[data-theme] body #mn .home-secondary-row > button:hover { background: var(--c-hover) !important; }
+html:root[data-theme] body #mn .home-secondary-row > button:active { background: var(--c-selected) !important; border-color: var(--c-primary) !important; transform: scale(.985); }
+html:root[data-theme] body #mn .home-secondary-row .home-action-label { color: var(--c-text) !important; }
+html:root[data-theme] body #mn .home-secondary-row small { color: var(--c-text-2) !important; }
+html:root[data-theme] body #mn .home-secondary-row .opt i { background: var(--c-selected) !important; color: var(--c-link) !important; border: 0 !important; }
+html:root[data-theme] body #mn #nv { background: var(--c-raise) !important; border: 1px solid var(--c-border) !important; box-shadow: 0 10px 28px var(--c-shadow) !important; }
+html:root[data-theme] body #mn #nv button { background: transparent !important; color: var(--c-text-2) !important; border: 0 !important; box-shadow: none !important; }
+html:root[data-theme] body #mn #nv button i { color: inherit !important; }
+html:root[data-theme] body #mn #nv button:active { color: var(--c-link) !important; }
+html:root[data-theme] body #mn #nv button.hm { background: var(--c-selected) !important; color: var(--c-link) !important; border: 1px solid var(--c-trim) !important; }
+
+/* ── sheets, dialogs, options ── */
+html:root[data-theme] body .mod, html:root[data-theme] body #ov { background: var(--c-overlay) !important; }
+html:root[data-theme] body .mod .sheet, html:root[data-theme] body #ov #ob {
+  background: var(--c-bg) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; box-shadow: 0 -18px 50px var(--c-shadow-strong) !important;
+}
+html:root[data-theme] body .mod .sheet h2, html:root[data-theme] body #ov #ob h2 { color: var(--c-link) !important; }
+html:root[data-theme] body .mod .sheet h3, html:root[data-theme] body #ov #ob h3 { color: var(--c-text) !important; }
+html:root[data-theme] body .mod .sheet p, html:root[data-theme] body #ov #ob p { color: var(--c-text); }
+html:root[data-theme] body .ch button {
+  background: var(--c-raise) !important; color: var(--c-text) !important; border: 1.5px solid var(--c-border) !important; box-shadow: none !important;
+}
+html:root[data-theme] body .ch button b { color: inherit !important; }
+html:root[data-theme] body .ch button small { color: var(--c-text-2) !important; }
+html:root[data-theme] body .ch button:hover { background: var(--c-hover) !important; }
+html:root[data-theme] body .ch button:active { transform: scale(.98); }
+html:root[data-theme] body .ch button.on { background: var(--c-selected) !important; border-color: var(--c-primary) !important; color: var(--c-link) !important; box-shadow: inset 0 0 0 1px var(--c-primary) !important; }
+html:root[data-theme] body .ch button.on small { color: var(--c-text) !important; }
+html:root[data-theme] body .ch button:disabled, html:root[data-theme] body .ch button.short, html:root[data-theme] body .ch button[aria-disabled="true"] {
+  background: var(--c-disabled) !important; color: var(--c-on-disabled) !important; border-color: var(--c-border) !important; opacity: .7;
+}
+html:root[data-theme] body .ch button.on:disabled { background: var(--c-selected) !important; color: var(--c-link) !important; opacity: 1; }
+html:root[data-theme] body .cta, html:root[data-theme] body .qc-go, html:root[data-theme] body #se .set-done {
+  background: var(--c-btn) !important; color: var(--c-on-primary) !important; border: 1px solid var(--c-primary) !important; box-shadow: 0 6px 16px var(--c-shadow) !important;
+}
+html:root[data-theme] body .cta:hover { filter: brightness(1.06); }
+html:root[data-theme] body .cta:active, html:root[data-theme] body .qc-go:active { background: var(--c-btn-pressed) !important; transform: translateY(1px); }
+html:root[data-theme] body .cta:disabled { background: var(--c-disabled) !important; color: var(--c-on-disabled) !important; border-color: var(--c-border) !important; box-shadow: none !important; }
+html:root[data-theme] body .wide, html:root[data-theme] body #se .set-back, html:root[data-theme] body #se button.set-lift {
+  background: var(--c-raise) !important; color: var(--c-link) !important; border: 1px solid var(--c-border) !important; box-shadow: none !important;
+}
+html:root[data-theme] body .wide:hover { background: var(--c-hover) !important; }
+html:root[data-theme] body .wide:active { background: var(--c-selected) !important; }
+html:root[data-theme] body .tx, html:root[data-theme] body textarea, html:root[data-theme] body input[type="text"] {
+  background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; caret-color: var(--c-primary);
+}
+html:root[data-theme] body .tx::placeholder, html:root[data-theme] body textarea::placeholder { color: var(--c-text-2) !important; }
+html:root[data-theme] body .lb-bal { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; }
+html:root[data-theme] body .pill { background: var(--c-selected) !important; color: var(--c-link) !important; border: 1px solid var(--c-border) !important; }
+html:root[data-theme] body .score-breakdown { background: var(--c-raise) !important; border: 1px solid var(--c-border) !important; color: var(--c-text-2) !important; }
+html:root[data-theme] body .score-breakdown strong { color: var(--c-link) !important; }
+html:root[data-theme] body .tbl { color: var(--c-text) !important; }
+html:root[data-theme] body .tbl td, html:root[data-theme] body .tbl th { border-color: var(--c-border) !important; }
+html:root[data-theme] body .tbl th { background: var(--c-surface) !important; color: var(--c-link) !important; }
+html:root[data-theme] body .tbl tr:last-child td { background: var(--c-surface) !important; color: var(--c-link) !important; }
+html:root[data-theme] body .qn-xp, html:root[data-theme] body .qn-coins, html:root[data-theme] body .rule-section, html:root[data-theme] body details {
+  background: var(--c-raise) !important; border-color: var(--c-border) !important; color: var(--c-text) !important;
+}
+html:root[data-theme] body .qn-xp .pos b, html:root[data-theme] body .qn-coins.pos b { color: var(--c-success) !important; }
+html:root[data-theme] body .qn-xp .neg b, html:root[data-theme] body .qn-coins.neg b { color: var(--c-danger) !important; }
+html:root[data-theme] body .qn-track { background: var(--c-sunk) !important; }
+html:root[data-theme] body .qn-track i { background: var(--c-trim) !important; }
+html:root[data-theme] body .stake-warn { color: var(--c-danger) !important; }
+html:root[data-theme] body #qtoast p { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; border: 1px solid var(--c-chrome-line) !important; box-shadow: 0 8px 22px var(--c-shadow-strong) !important; }
+html:root[data-theme] body .lt-row { background: var(--c-raise) !important; border-color: var(--c-border) !important; }
+html:root[data-theme] body .lt-row.us { border-inline-start-color: var(--c-success) !important; }
+html:root[data-theme] body .lt-row.them { border-inline-start-color: var(--c-danger) !important; }
+html:root[data-theme] body .lt-head span { color: var(--c-text-2) !important; }
+html:root[data-theme] body .lt-head em { color: var(--c-link) !important; }
+html:root[data-theme] body .lt-cross .lt-card.win { box-shadow: 0 0 0 2px var(--c-trim), 0 0 8px var(--c-trim) !important; }
+
+/* ── settings ── */
+html:root[data-theme] body #se .set-kicker { color: var(--c-link) !important; }
+html:root[data-theme] body #se .set-save { color: var(--c-link) !important; }
+html:root[data-theme] body #se .set-ava { background: var(--c-raise) !important; border: 2px solid var(--c-trim) !important; }
+html:root[data-theme] body #se #set-ident small { color: var(--c-text-2) !important; }
+html:root[data-theme] body #se .set-rank, html:root[data-theme] body #se #set-stats, html:root[data-theme] body #se #set-stats .sts, html:root[data-theme] body #se .set-nav button {
+  background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; box-shadow: none !important;
+}
+html:root[data-theme] body #se #set-stats .sts { border: 0 !important; }
+html:root[data-theme] body #se #set-stats b { color: var(--c-link) !important; }
+html:root[data-theme] body #se .set-rank small, html:root[data-theme] body #se .set-nav button small, html:root[data-theme] body #se .set-row p { color: var(--c-text-2) !important; }
+html:root[data-theme] body #se .set-nav button:hover { background: var(--c-hover) !important; }
+html:root[data-theme] body #se .set-nav button:active { background: var(--c-selected) !important; }
+html:root[data-theme] body #se .set-nav button i { background: var(--c-selected) !important; color: var(--c-link) !important; border: 0 !important; }
+html:root[data-theme] body #se .set-nav button::after { border-color: var(--c-link) !important; }
+html:root[data-theme] body #se .set-xp { background: var(--c-sunk) !important; }
+html:root[data-theme] body #se .set-xp i { background: var(--c-trim) !important; }
+html:root[data-theme] body #se .set-row { border-color: var(--c-border) !important; }
+html:root[data-theme] body #se .set-row button.sw { background: var(--c-sunk) !important; }
+html:root[data-theme] body #se .set-row button.sw i { background: #FFFFFF !important; box-shadow: 0 1px 3px var(--c-shadow-strong); }
+html:root[data-theme] body #se .set-row button.sw.on { background: var(--c-primary) !important; }
+html:root[data-theme] body #se .lock-pill { background: var(--c-surface) !important; color: var(--c-text-2) !important; border-color: var(--c-border) !important; }
+html:root[data-theme] body #se .set-ach li { color: var(--c-text-2) !important; border-color: var(--c-border) !important; background: transparent !important; }
+html:root[data-theme] body #se .set-ach li.on { color: var(--c-link) !important; border-color: var(--c-primary) !important; background: var(--c-selected) !important; }
+html:root[data-theme] body #se input[type="range"] { accent-color: var(--c-primary) !important; }
+html:root[data-theme] body #se #qa-host button { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; }
+html:root[data-theme] body #se #qa-host button.on, html:root[data-theme] body #se #qa-host button[aria-pressed="true"] { background: var(--c-selected) !important; color: var(--c-link) !important; border-color: var(--c-primary) !important; }
+
+/* ── game: scene, header, dock ── */
+html:root[data-theme] body #gm.on { background: var(--c-scene) !important; }
+html:root[data-theme] body #gm.on #hud {
+  background: var(--c-chrome) !important; border-bottom: 1px solid var(--c-chrome-line) !important; box-shadow: 0 6px 18px var(--c-shadow-strong) !important; color: var(--c-on-chrome) !important;
+}
+html:root[data-theme] body #gm.on #hud .sc > div { background: var(--c-chrome-control) !important; border: 1px solid var(--c-chrome-line) !important; color: var(--c-chrome-muted) !important; }
+html:root[data-theme] body #gm.on #hud .sc > div:first-child { box-shadow: inset 0 3px 0 var(--c-success) !important; }
+html:root[data-theme] body #gm.on #hud .sc > div:last-child { box-shadow: inset 0 3px 0 var(--c-danger) !important; }
+html:root[data-theme] body #gm.on #hud .sc > div b { color: var(--c-on-chrome) !important; }
+html:root[data-theme] body #gm.on #hud #ri { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+html:root[data-theme] body #gm.on #hud #ri .roundlabel { color: var(--c-chrome-muted) !important; }
+html:root[data-theme] body #gm.on #hud #md { color: var(--v9-gold) !important; }
+html:root[data-theme] body #gm.on #hud .ib { background: var(--c-chrome-control) !important; border: 1px solid var(--c-chrome-line) !important; color: var(--c-on-chrome) !important; box-shadow: none !important; }
+html:root[data-theme] body #gm.on #hud .ib:active { background: var(--c-chrome-line) !important; transform: scale(.94); }
+html:root[data-theme] body #gm.on #panel {
+  background: var(--c-chrome) !important; border-top: 1px solid var(--c-chrome-line) !important; box-shadow: 0 -10px 26px var(--c-shadow-strong) !important; color: var(--c-on-chrome) !important;
+}
+html:root[data-theme] body #gm.on #panel #me { background: var(--c-chrome-control) !important; border: 1px solid var(--c-chrome-line) !important; }
+html:root[data-theme] body #gm.on #panel #mn2 { color: var(--c-on-chrome) !important; }
+html:root[data-theme] body #gm.on #prow .pbtn, html:root[data-theme] body #gm.on #prow #slam-btn, html:root[data-theme] body #gm.on #prow #ctr, html:root[data-theme] body #gm.on #prow #akk-button {
+  background: var(--c-chrome-control) !important; color: var(--c-on-chrome) !important; border: 1px solid var(--c-chrome-line) !important; box-shadow: none !important;
+}
+html:root[data-theme] body #gm.on #prow #slam-btn small { color: var(--c-chrome-muted) !important; }
+html:root[data-theme] body #gm.on #prow #slam-btn.on { background: var(--c-danger) !important; color: #FFFFFF !important; border-color: var(--c-danger) !important; }
+html:root[data-theme] body #gm.on #prow #slam-btn.short { opacity: .5; }
+html:root[data-theme] body #gm.on #prow #akk-button.selected { background: var(--c-accent) !important; color: var(--c-on-accent) !important; border-color: var(--c-accent) !important; }
+html:root[data-theme] body #gm.on #mav { background: conic-gradient(var(--c-accent) var(--p, 0%), var(--c-chrome-control) 0) !important; }
+html:root[data-theme] body #gm.on #mav .in { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; }
+html:root[data-theme] body #gm.on #tm { color: var(--c-on-chrome) !important; }
+html:root[data-theme] body #gm.on .dealer-tag { background: var(--c-accent) !important; color: var(--c-on-accent) !important; border: 0 !important; }
+html:root[data-theme] body #gm.on #prj .pbtn { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-trim) !important; }
+
+/* action buttons */
+html:root[data-theme] body #gm.on #act button, html:root[data-theme] body #gm.on #act button.bid-hokm {
+  background: var(--c-btn) !important; color: var(--c-on-primary) !important; border: 1px solid color-mix(in srgb, var(--c-on-primary) 22%, transparent) !important;
+  box-shadow: 0 4px 0 var(--c-primary-active), 0 8px 16px var(--c-shadow-strong) !important;
+}
+html:root[data-theme] body #gm.on #act button:hover { filter: brightness(1.07); }
+html:root[data-theme] body #gm.on #act button:active { background: var(--c-btn-pressed) !important; transform: translateY(3px); box-shadow: 0 1px 0 var(--c-primary-active), 0 3px 8px var(--c-shadow) !important; }
+html:root[data-theme] body #gm.on #act button:disabled { background: var(--c-pass) !important; color: var(--c-chrome-muted) !important; box-shadow: none !important; opacity: .65; }
+html:root[data-theme] body #gm.on #act button.bid-pass { background: var(--c-pass) !important; color: var(--c-on-chrome) !important; box-shadow: 0 4px 0 color-mix(in srgb, var(--c-chrome) 70%, #000), 0 8px 16px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #gm.on #act button.bid-sun { background: var(--c-accent) !important; color: var(--c-on-accent) !important; box-shadow: 0 4px 0 color-mix(in srgb, var(--c-accent) 62%, #000), 0 8px 16px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #gm.on #act button.bid-raise { background: var(--c-danger) !important; color: #FFFFFF !important; box-shadow: 0 4px 0 color-mix(in srgb, var(--c-danger) 62%, #000), 0 8px 16px var(--c-shadow-strong) !important; }
+
+/* seats */
+html:root[data-theme] body #gm.on #tw .seat .av { background: var(--c-raise) !important; border: 2px solid var(--c-raise) !important; box-shadow: 0 4px 12px var(--c-shadow-strong), 0 0 0 1px var(--c-border) !important; }
+html:root[data-theme] body #gm.on #tw .seat.on .av { box-shadow: 0 4px 12px var(--c-shadow-strong), 0 0 0 3px var(--c-accent) !important; }
+html:root[data-theme] body #gm.on #tw .seat .nm { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; border: 1px solid var(--c-chrome-line) !important; box-shadow: 0 6px 14px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #gm.on #tw .seat .nm small { color: var(--c-chrome-muted) !important; background: transparent !important; }
+html:root[data-theme] body #gm.on #tw .seat .nm small.seat-level { color: var(--v9-gold) !important; }
+html:root[data-theme] body #gm.on #tw .seat .nm .bot-contract { background: var(--c-on-chrome) !important; color: var(--c-chrome) !important; border: 0 !important; }
+html:root[data-theme] body #gm.on #tw .seat .fan::after { background: var(--c-primary) !important; color: var(--c-on-primary) !important; border: 1px solid var(--c-on-primary) !important; }
+html:root[data-theme] body #gm.on #tw .seat .bub, html:root[data-theme] body #gm.on #tb > #say {
+  background: var(--c-raise) !important; color: var(--c-text) !important; border: 1px solid var(--c-border) !important; box-shadow: 0 6px 16px var(--c-shadow-strong) !important;
+}
+html:root[data-theme] body #gm.on #tw .seat .turn-ring circle, html:root[data-theme] body #gm.on #tw .seat .turn-ring path { stroke: var(--c-accent) !important; }
+html:root[data-theme] body #gm.on #rm { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; border: 1px solid var(--c-chrome-line) !important; box-shadow: 0 6px 16px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #gm.on #rm > b { color: var(--c-chrome-muted) !important; }
+html:root[data-theme] body #gm.on #rml small { color: var(--v9-gold) !important; }
+html:root[data-theme] body #gm.on #hand .cd.ok { box-shadow: 0 0 0 2px var(--c-accent), 0 8px 18px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #gm.on #hand .cd.no { filter: brightness(.72) saturate(.7) !important; }
+html:root[data-theme] body .xp-pop { background: var(--c-primary) !important; color: var(--c-on-primary) !important; }
+
+/* qayd window + bot catch */
+html:root[data-theme] body #ob.qaid-catch .qc-title { color: var(--c-link) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-time { background: var(--c-raise) !important; border: 2px solid var(--c-trim) !important; color: var(--c-text) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-time.hot { border-color: var(--c-danger) !important; color: var(--c-danger) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-kind { background: var(--c-raise) !important; color: var(--c-text) !important; border: 1.5px solid var(--c-border) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-kind small { color: var(--c-text-2) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-kind.on { background: var(--c-primary) !important; border-color: var(--c-primary) !important; color: var(--c-on-primary) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-kind.off { background: var(--c-disabled) !important; color: var(--c-on-disabled) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-desc { color: var(--c-text-2) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-desc.on { color: var(--c-text) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-ask { background: var(--c-surface) !important; border: 1px solid var(--c-border) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-prompt.ask { color: var(--c-text) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-prompt.bad { color: var(--c-danger) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-prompt.go { color: var(--c-success) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-bar { background: var(--c-sunk) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-bar i { background: var(--c-trim) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-bar i.hot { background: var(--c-danger) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-name, html:root[data-theme] body #ob.qaid-catch .qc-hands-title, html:root[data-theme] body #ob.qaid-catch .qc-empty { color: var(--c-text-2) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-slot.on { box-shadow: 0 0 0 3px var(--c-accent), 0 6px 14px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-slot.on::after { background: var(--c-accent) !important; color: var(--c-on-accent) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-slot[data-tag="غش"].on { box-shadow: 0 0 0 3px var(--c-danger), 0 6px 14px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-slot[data-tag="غش"].on::after { background: var(--c-danger) !important; color: #FFFFFF !important; }
+html:root[data-theme] body #ob.qaid-catch .qc-go { opacity: .5; }
+html:root[data-theme] body #ob.qaid-catch .qc-go.ready { opacity: 1; }
+html:root[data-theme] body #bot-qaid h2 { color: var(--c-link) !important; }
+html:root[data-theme] body #bot-qaid p, html:root[data-theme] body #bot-qaid .qc-caught-cards b { color: var(--c-text-2) !important; }
+
+/* lineup between rounds */
+html:root[data-theme] body #lineup .lu-veil { background: var(--c-overlay) !important; }
+html:root[data-theme] body #lineup .lu-kicker, html:root[data-theme] body #lineup .lu-skip, html:root[data-theme] body #lineup .lu-meta { color: var(--c-on-primary) !important; }
+html:root[data-theme] body #lineup .lu-row { background: var(--c-raise) !important; color: var(--c-text) !important; border: 2px solid var(--c-border) !important; box-shadow: 0 8px 20px var(--c-shadow-strong) !important; }
+html:root[data-theme] body #lineup .lu-row.me { background: var(--c-btn) !important; color: var(--c-on-primary) !important; border-color: var(--c-trim) !important; }
+html:root[data-theme] body #lineup .lu-row.mate { background: var(--c-surface) !important; border-color: var(--c-primary) !important; }
+html:root[data-theme] body #lineup .lu-row .lu-name > b, html:root[data-theme] body #lineup .lu-row .lu-level { color: inherit !important; }
+html:root[data-theme] body #lineup .lu-badge { background: var(--c-primary) !important; color: var(--c-on-primary) !important; }
+html:root[data-theme] body #lineup .lu-row.me .lu-badge { background: var(--c-on-primary) !important; color: var(--c-primary) !important; }
+html:root[data-theme] body #lineup .lu-row.foe .lu-badge { background: var(--c-danger) !important; color: #FFFFFF !important; }
+html:root[data-theme] body #lineup .lu-av { border-color: var(--c-raise) !important; background: var(--c-surface) !important; }
+html:root[data-theme] body #lineup .lu-vs b { color: var(--c-on-primary) !important; }
+html:root[data-theme] body #lineup .lu-vs i { color: var(--c-danger) !important; }
+
+/* projects / sawa reveal */
+html:root[data-theme] body .drop-plaque { background: var(--c-chrome) !important; color: var(--c-on-chrome) !important; border: 1px solid var(--c-chrome-line) !important; }
+html:root[data-theme] body .drop-plaque small, html:root[data-theme] body .drop-more { color: var(--c-chrome-muted) !important; }
+html:root[data-theme] body .drop-lv { background: var(--c-accent) !important; color: var(--c-on-accent) !important; }
+html:root[data-theme] body .drop-xp { background: var(--c-chrome-control) !important; }
+html:root[data-theme] body .drop-xp i { background: var(--c-accent) !important; }

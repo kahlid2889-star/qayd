@@ -4,8 +4,6 @@
 /* ════════════════ base 1 ════════════════ */
 :root{
  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-:root[data-theme=dark]{--bg:#1a1530;--pn:#2b2447;--pt:#efe7ff;--ink:#e9e2ff;--acc:#e2bd6d;--ac2:#a98a3f;--rug:#2a1f4e;--rg2:#4a3a82;--cb:#3a2c6d;--cb2:#e2bd6d;--sh:rgba(0,0,0,.5)}
-:root[data-theme=light]{--bg:#f6f3fb;--pn:#ffffff;--pt:#3f2468;--ink:#3f2468;--acc:#6b3fa0;--ac2:#4a2878;--rug:#e6dcf5;--rg2:#cdbbe9;--cb:#6b3fa0;--cb2:#e6dcf5;--sh:rgba(63,36,104,.25)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,Tahoma,system-ui,sans-serif;transition:background .4s}
 h1,h2,.rk{font-family:"Reem Kufi",Tahoma,sans-serif}
@@ -89,7 +87,7 @@ input.tx{width:100%;font:inherit}
 #rm{position:absolute;z-index:8;background:rgba(0,0,0,.4);color:#fff;text-align:center}#rm b{display:block;font-family:"Reem Kufi"}
 #rml{display:flex}.cr{display:grid;gap:1px;background:rgba(0,0,0,.4);transition:.3s}
 .mc{font-style:normal;background:#fffdf6;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-family:Oswald,sans-serif}.mc b{font-weight:500}.mc.rd{color:#b0201a}.mc.bk{color:#14110f}.mc.wn{box-shadow:0 0 0 2px var(--acc)}.opt i{font-size:36px}.ib svg,.opt svg,#nv svg{display:block}#nv i{display:block;line-height:0}
-.seat{width:92px}.seat .nm{padding:3px 8px 4px}#rug{width:min(58vw,44vh,300px)}:root[data-theme=dark]{--b1:#5a4a96;--b2:#3a2f6e;--bt:#f3eeff}:root[data-theme=light]{--b1:#8a5cc4;--b2:#6b3fa0;--bt:#fff}
+.seat{width:92px}.seat .nm{padding:3px 8px 4px}#rug{width:min(58vw,44vh,300px)}
 #panel{position:relative}
 #prow{display:flex;align-items:center}
 .pbtn{border-radius:16px;background:linear-gradient(var(--b1),var(--b2));color:var(--bt);font-weight:700}.pbtn.sq{height:36px;display:grid;place-items:center;font-size:20px}
@@ -126,14 +124,6 @@ input.tx{width:100%;font:inherit}
   --table-max: 1000px;
   --menu-max: 540px;
   padding: 0;
-}
-
-:root[data-theme="dark"] {
-  --soft-shadow: 0 8px 24px rgba(0, 0, 0, .23);
-}
-
-:root[data-theme="light"] {
-  --soft-shadow: 0 8px 24px rgba(77, 49, 99, .08);
 }
 
 html, body {
@@ -718,9 +708,9 @@ button.rule-link { min-height: 44px; padding: 8px 4px; background: transparent; 
 #sp p { font: 700 12px Tajawal,Tahoma,sans-serif; letter-spacing: .3em; }
 #mn .brand { line-height: 1; }
 .brand .subtitle { margin-top: -4px; }
-#go .qaid-logo { width: 72px; height: 45px; --brand-logo: #f2d59a; }
-#hud .qaid-logo { width: 34px; height: 24px; --brand-logo: var(--pt); }
-#qaid-watermark { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); opacity: .14; pointer-events: none; z-index: 0; width: 86px; height: 55px; --brand-logo: var(--pt); }
+#go .qaid-logo { width: 72px; height: 45px; }
+#hud .qaid-logo { width: 34px; height: 24px; }
+#qaid-watermark { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); opacity: .14; pointer-events: none; z-index: 0; width: 86px; height: 55px; }
 #hand { height: calc(var(--cw)*1.60 + 4px); }
 #hand .cd { bottom: 15px; }
 #tw { --rs: min(63vw, 28vh, 310px); top: 49%; }
@@ -1072,21 +1062,15 @@ button.rule-link { min-height: 44px; padding: 8px 4px; background: transparent; 
 #gm {
   --floor: #e7d4b8;
   --floor-light: #f5e8d5;
-  --seat-surface: #fff3db;
-  --seat-ink: #57352b;
   background: radial-gradient(ellipse at 50% 28%, var(--floor-light), var(--floor));
 }
 :root[data-theme="light"] #gm {
   --floor: #eee3d1;
   --floor-light: #fff8eb;
-  --seat-surface: #fffaf0;
-  --seat-ink: #49392f;
 }
 :root[data-theme="dark"] #gm {
   --floor: #111f32;
   --floor-light: #23344b;
-  --seat-surface: #223249;
-  --seat-ink: #f8e7c7;
 }
 #gm.on #tw {
   width: var(--table-w,82vw);
@@ -1303,11 +1287,6 @@ button.rule-link { min-height: 44px; padding: 8px 4px; background: transparent; 
 .audio-setting .note { margin: 8px 0 2px; }
 
 /* Sawa Baloot v9 — filename retained; load after table/card styles. */
-:root {
-  --motion-back-base: var(--cb, #751f35);
-  --motion-back-thread: var(--cb2, #dfc58d);
-  --motion-back-cream: #f5e6c5;
-}
 /* All backs, including existing back() DOM, share one unbranded woven design. */
 .cb {
   position: relative;
@@ -1531,7 +1510,7 @@ button.rule-link { min-height: 44px; padding: 8px 4px; background: transparent; 
 @keyframes qnLogoIn { from { opacity: 0; transform: scale(.82) rotate(-4deg); filter: blur(4px); } }
 
 /* Splash v3: the supplied artwork fills the screen in its own colours; the white bar moves */
-html body #sp { --splash-bg: radial-gradient(ellipse at 50% 42%, #6E1824 0%, #58101A 45%, #3C0710 100%); --splash-glow: transparent; background: radial-gradient(ellipse at 50% 42%, #6E1824 0%, #58101A 45%, #3C0710 100%) !important; }
+html body #sp { background: radial-gradient(ellipse at 50% 42%, #6E1824 0%, #58101A 45%, #3C0710 100%) !important; }
 #sp .id { width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
 #sp .id-fly, #sp .id-fan, #sp .id-word { display: none !important; }
 #sp .qn-splash-art { width: max(100vw, min(200vw, 1000px)); max-width: none; height: auto;
@@ -1768,7 +1747,6 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 }
 /* Existing Qaid mask and dimensions remain intact; only ink/opacity change. */
 #gm #rug #qaid-watermark {
-  --brand-logo: var(--table-logo);
   background-color: var(--brand-logo);
   opacity: var(--table-logo-opacity);
 }
@@ -1844,50 +1822,6 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 
 /* Qaid — an editorial diwaniya, not a stack of promotional cards.
    Load after the existing styles. The parent supplies --qaid-next-logo. */
-:root[data-theme="dark"] {
-  --menu-bg: #151416;
-  --surface: #1d1b1d;
-  --surface-soft: #292427;
-  --menu-ink: #eee7db;
-  --muted: #ada399;
-  --rose: #c5a878;
-  --rose-deep: #42262d;
-  --trim: #8d7552;
-  --line: #393135;
-  --focus: #e7c489;
-  --brand-logo: #e1c18e;
-  --home-play: #6b323e;
-  --home-play-ink: #fff4e3;
-  --home-online: #232124;
-  --home-online-ink: #e8d4ae;
-  --home-gold: #c6a273;
-  --home-edge: #393135;
-  --home-shadow: 0 8px 22px #0003;
-  --on-accent: #d8b781;
-  --on-accent-ink: #261d1f;
-}
-:root[data-theme="light"] {
-  --menu-bg: #faf9f5;
-  --surface: #fffefa;
-  --surface-soft: #eeede8;
-  --menu-ink: #282b2c;
-  --muted: #777a77;
-  --rose: #625542;
-  --rose-deep: #413b33;
-  --trim: #b4a385;
-  --line: #deded7;
-  --focus: #806439;
-  --brand-logo: #343632;
-  --home-play: #303833;
-  --home-play-ink: #fffdf4;
-  --home-online: #f0efea;
-  --home-online-ink: #353c37;
-  --home-gold: #a68b60;
-  --home-edge: #dfdfd7;
-  --home-shadow: 0 7px 18px #292d2711;
-  --on-accent: #625542;
-  --on-accent-ink: #fffefa;
-}
 
 /* One asset and theme tint for every existing mark, including account and HUD. */
 .qaid-logo {
@@ -2307,34 +2241,6 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 
 /* Heritage: cream diwaniya, deep burgundy, muted gold. */
 :root {
-  --qb-bg: #F3E8D4;
-  --qb-surface: #FFF8EB;
-  --qb-soft: #E9D8BC;
-  --qb-ink: #39271F;
-  --qb-primary: #681F32;
-  --qb-primary-hover: #87384B;
-  --qb-primary-ink: #FFF8EB;
-  --qb-accent: #681F32;
-  --qb-gold: #B89558;
-  --qb-gold-deep: #8d7040;
-  --qb-line: #D6C1A1;
-  --qb-focus: #681F32;
-  --qb-chrome: #FFF8EB;
-  --qb-chrome-ink: #39271F;
-  --qb-chrome-line: #D6C1A1;
-  --qb-chrome-control: #E9D8BC;
-  --qb-chrome-control-ink: #681F32;
-  --qb-game-action: #681F32;
-  --qb-game-action-hover: #87384B;
-  --qb-game-action-ink: #FFF8EB;
-  --qb-floor: #E9D8BC;
-  --qb-floor-light: #F3E8D4;
-  --qb-back: #681F32;
-  --qb-back-trim: #B89558;
-  --qb-overlay: rgba(57, 39, 31, .55);
-  --qb-error: #9d3048;
-  --qb-success: #2f6b45;
-  --qb-shadow: rgba(57, 39, 31, .14);
   --qb-radius: 14px;
   --qb-button-font: Tajawal, Tahoma, system-ui, sans-serif;
   --qb-button-gap: 8px;
@@ -2344,69 +2250,11 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 
 /* Dark: charcoal field, emerald actions, gold trim. */
 :root[data-theme="dark"] {
-  --qb-bg: #101820;
-  --qb-surface: #18232D;
-  --qb-soft: #222F3B;
-  --qb-ink: #F4F6F8;
-  --qb-muted: #A4B0BA;
-  --qb-primary: #20A783;
-  --qb-primary-hover: #18886c;
-  --qb-primary-ink: #101820;
-  --qb-accent: #E0B85C;
-  --qb-gold: #E0B85C;
-  --qb-gold-deep: #276D5C;
-  --qb-line: #34414C;
-  --qb-focus: #20A783;
-  --qb-chrome: #18232D;
-  --qb-chrome-ink: #F4F6F8;
-  --qb-chrome-line: #34414C;
-  --qb-chrome-control: #222F3B;
-  --qb-chrome-control-ink: #E0B85C;
-  --qb-game-action: #20A783;
-  --qb-game-action-hover: #3dbe9a;
-  --qb-game-action-ink: #101820;
-  --qb-floor: #101820;
-  --qb-floor-light: #18232D;
-  --qb-back: #276D5C;
-  --qb-back-trim: #E0B85C;
-  --qb-overlay: rgba(8, 12, 16, .74);
-  --qb-error: #ffb4b4;
-  --qb-success: #8ed9b0;
-  --qb-shadow: rgba(0, 0, 0, .42);
   color-scheme: dark;
 }
 
 /* Light: cool paper, emerald, and a quiet gold line. */
 :root[data-theme="light"] {
-  --qb-bg: #F7F9FC;
-  --qb-surface: #FFFFFF;
-  --qb-soft: #EEF2F5;
-  --qb-ink: #202D3A;
-  --qb-muted: #89939E;
-  --qb-primary: #16866A;
-  --qb-primary-hover: #0f6d56;
-  --qb-primary-ink: #FFFFFF;
-  --qb-accent: #16866A;
-  --qb-gold: #D6AD59;
-  --qb-gold-deep: #80B9A5;
-  --qb-line: #E1E7EC;
-  --qb-focus: #16866A;
-  --qb-chrome: #FFFFFF;
-  --qb-chrome-ink: #202D3A;
-  --qb-chrome-line: #E1E7EC;
-  --qb-chrome-control: #EEF2F5;
-  --qb-chrome-control-ink: #16866A;
-  --qb-game-action: #16866A;
-  --qb-game-action-hover: #0f6d56;
-  --qb-game-action-ink: #FFFFFF;
-  --qb-floor: #EEF2F5;
-  --qb-floor-light: #F7F9FC;
-  --qb-back: #16866A;
-  --qb-back-trim: #D6AD59;
-  --qb-overlay: rgba(32, 45, 58, .42);
-  --qb-error: #a0243b;
-  --qb-success: #16866A;
-  --qb-shadow: rgba(32, 45, 58, .1);
   color-scheme: light;
 }
 
@@ -2416,45 +2264,7 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
  */
 :root,
 :root[data-theme] {
-  --bg: var(--qb-bg);
-  --pn: var(--qb-chrome);
-  --pt: var(--qb-chrome-ink);
-  --ink: var(--qb-ink);
-  --acc: var(--qb-gold);
-  --ac2: var(--qb-gold-deep);
-  --rug: var(--qb-back);
-  --rg2: var(--qb-back);
-  --cb: var(--qb-back);
-  --cb2: var(--qb-back-trim);
-  --sh: var(--qb-shadow);
   --ok: var(--qb-success);
-  --b1: var(--qb-game-action);
-  --b2: var(--qb-game-action);
-  --bt: var(--qb-game-action-ink);
-  --menu-bg: var(--qb-bg);
-  --surface: var(--qb-surface);
-  --surface-soft: var(--qb-soft);
-  --menu-ink: var(--qb-ink);
-  --muted: var(--qb-muted);
-  --rose: var(--qb-accent);
-  --rose-deep: var(--qb-primary-hover);
-  --trim: var(--qb-gold-deep);
-  --line: var(--qb-line);
-  --focus: var(--qb-focus);
-  --brand-logo: var(--qb-accent);
-  --home-play: var(--qb-primary);
-  --home-play-ink: var(--qb-primary-ink);
-  --home-online: var(--qb-surface);
-  --home-online-ink: var(--qb-accent);
-  --home-gold: var(--qb-gold);
-  --home-edge: var(--qb-line);
-  --home-shadow: 0 7px 18px var(--qb-shadow);
-  --soft-shadow: 0 6px 18px var(--qb-shadow);
-  --on-bg: var(--qb-bg);
-  --on-surface: var(--qb-surface);
-  --on-ink: var(--qb-ink);
-  --on-accent: var(--qb-primary);
-  --on-accent-ink: var(--qb-primary-ink);
 }
 
 :root .mod,
@@ -2468,8 +2278,6 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
 :root[data-theme] #gm {
   --floor: var(--qb-floor);
   --floor-light: var(--qb-floor-light);
-  --seat-surface: var(--qb-surface);
-  --seat-ink: var(--qb-ink);
 }
 #gm #hud,
 #gm #panel {
@@ -2479,7 +2287,6 @@ html, body { overflow: clip; max-width: 100vw; position: relative; }
   box-shadow: 0 3px 12px var(--qb-shadow);
 }
 #gm #panel { box-shadow: 0 -4px 14px var(--qb-shadow); }
-#gm #hud .qaid-logo { --brand-logo: var(--qb-chrome-ink); }
 #gm #say {
   background: var(--qb-chrome);
   color: var(--qb-chrome-ink);
@@ -3247,9 +3054,9 @@ html[data-info="0"] #ctr, html[data-info="0"] .bot-contract { visibility:hidden;
   color: transparent;
 }
 .qaid-logo.qn-logo img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-:root { --mark-metal: #681F32; --splash-bg: #F3E8D4; --splash-glow: radial-gradient(ellipse at 50% 42%, #FFF8EB 0%, #F3E8D4 58%, #E9D8BC 100%); --splash-ink: #681F32; --splash-bar: #B89558; }
-:root[data-theme="dark"] { --mark-metal: #E0B85C; --splash-bg: #101820; --splash-glow: radial-gradient(ellipse at 50% 42%, #1a3d36 0%, #101820 56%, #0b1218 100%); --splash-ink: #F4F6F8; --splash-bar: #20A783; }
-:root[data-theme="light"] { --mark-metal: #16866A; --splash-bg: #F7F9FC; --splash-glow: radial-gradient(ellipse at 50% 42%, #ffffff 0%, #F7F9FC 55%, #E1E7EC 100%); --splash-ink: #16866A; --splash-bar: #D6AD59; }
+:root { --mark-metal: #681F32; }
+:root[data-theme="dark"] { --mark-metal: #E0B85C; }
+:root[data-theme="light"] { --mark-metal: #16866A; }
 .id-mark { position: relative; display: block; width: 100%; height: 100%; line-height: 0; }
 .id-mark > img { position: relative; z-index: 1; display: block; width: 100%; height: 100%; object-fit: contain; }
 #mn.home-next .home-hero .qaid-logo.qn-logo {
@@ -3904,67 +3711,9 @@ html #gm.on #panel #act button.bid-raise {
 /* ════════════════ qayd-v6 ════════════════ */
 /* Dark and light keep their own colors. Heritage stays the developed majlis. */
 html:root[data-theme="dark"] {
-  --qb-bg: #101820;
-  --qb-surface: #18232D;
-  --qb-soft: #222F3B;
-  --qb-ink: #F4F6F8;
-  --qb-muted: #A4B0BA;
-  --qb-primary: #20A783;
-  --qb-primary-hover: #18886c;
-  --qb-primary-ink: #101820;
-  --qb-accent: #E0B85C;
-  --qb-gold: #E0B85C;
-  --qb-gold-deep: #276D5C;
-  --qb-line: #34414C;
-  --qb-focus: #20A783;
-  --qb-chrome: #18232D;
-  --qb-chrome-ink: #F4F6F8;
-  --qb-chrome-line: #34414C;
-  --qb-chrome-control: #222F3B;
-  --qb-chrome-control-ink: #E0B85C;
-  --qb-game-action: #20A783;
-  --qb-game-action-hover: #3dbe9a;
-  --qb-game-action-ink: #101820;
-  --qb-floor: #101820;
-  --qb-floor-light: #18232D;
-  --qb-back: #276D5C;
-  --qb-back-trim: #E0B85C;
-  --qb-overlay: rgba(8, 12, 16, .74);
-  --qb-error: #ffb4b4;
-  --qb-success: #8ed9b0;
-  --qb-shadow: rgba(0, 0, 0, .42);
   color-scheme: dark;
 }
 html:root[data-theme="light"] {
-  --qb-bg: #F7F9FC;
-  --qb-surface: #FFFFFF;
-  --qb-soft: #EEF2F5;
-  --qb-ink: #202D3A;
-  --qb-muted: #89939E;
-  --qb-primary: #16866A;
-  --qb-primary-hover: #0f6d56;
-  --qb-primary-ink: #FFFFFF;
-  --qb-accent: #16866A;
-  --qb-gold: #D6AD59;
-  --qb-gold-deep: #80B9A5;
-  --qb-line: #E1E7EC;
-  --qb-focus: #16866A;
-  --qb-chrome: #FFFFFF;
-  --qb-chrome-ink: #202D3A;
-  --qb-chrome-line: #E1E7EC;
-  --qb-chrome-control: #EEF2F5;
-  --qb-chrome-control-ink: #16866A;
-  --qb-game-action: #16866A;
-  --qb-game-action-hover: #0f6d56;
-  --qb-game-action-ink: #FFFFFF;
-  --qb-floor: #EEF2F5;
-  --qb-floor-light: #F7F9FC;
-  --qb-back: #16866A;
-  --qb-back-trim: #D6AD59;
-  --qb-overlay: rgba(32, 45, 58, .42);
-  --qb-error: #a0243b;
-  --qb-success: #16866A;
-  --qb-shadow: rgba(32, 45, 58, .1);
   color-scheme: light;
 }
 html:root[data-theme="dark"] #gm #tw #rug {
@@ -4564,8 +4313,6 @@ html #gm.on #tb > #say small { display: none !important; }
 
 /* ════════════════ qayd-v8 ════════════════ */
 /* v8: readability, touch size and fit. Loaded last. */
-:root { --qb-muted: #6E5A4A; }
-html[data-theme="dark"] { --qb-muted: #C9B8A4; }
 html:not([data-theme="light"]) #gm.on #md { color: #EBCF8C; }
 html[data-theme="light"] #gm.on #md { color: #1F3B2E; }
 html #gm.on #md { font-size: 13px; }
@@ -4602,14 +4349,11 @@ html #mn.home-next #nv { margin-top: auto; }
    Loaded last; only looks change. Layout, ids and card motion are untouched.
    ============================================================================ */
 html body #gm.on {
-  --v9-ink: #f3f6fa; --v9-muted: #a9b6c4; --v9-glass: rgba(13, 19, 27, .84); --v9-glass-2: rgba(255, 255, 255, .06);
-  --v9-line: rgba(255, 255, 255, .12); --v9-gold: #e3bd6a; --v9-us: #34c27f; --v9-them: #ef5d6f; --v9-blue: #2b56b5;
   background:
     radial-gradient(ellipse 90% 55% at 50% 42%, rgba(73, 112, 196, .22), transparent 70%),
     radial-gradient(ellipse 140% 90% at 50% 40%, #233142 0%, #151d28 55%, #0b1017 100%) !important;
 }
 html[data-theme="light"] body #gm.on {
-  --v9-ink: #18222e; --v9-muted: #5b6878; --v9-glass: rgba(255, 255, 255, .9); --v9-glass-2: rgba(16, 32, 56, .05); --v9-line: rgba(16, 32, 56, .12);
   background:
     radial-gradient(ellipse 90% 55% at 50% 42%, rgba(73, 112, 196, .16), transparent 70%),
     radial-gradient(ellipse 140% 90% at 50% 40%, #eef2f7 0%, #dfe6ee 60%, #cfd8e2 100%) !important;
@@ -4824,9 +4568,6 @@ html #gm.on .eat-mark span { display: none !important; }
    velvet pad, four velvet arm rests, four steel cups and the قيد mark stitched
    in the middle. The velvet colour follows the theme.
    ============================================================================ */
-html:root { --velvet: #7c2233; --velvet-hi: #a8394e; --velvet-lo: #4d111e; --board: #fbf7ef; --board-lo: #e6ded0; --board-edge: #c99a5f; --board-edge-lo: #8f6535; }
-html:root[data-theme="dark"] { --velvet: #14614d; --velvet-hi: #218a6d; --velvet-lo: #0a3a2e; --board: #f3f5f6; --board-lo: #d5dade; --board-edge: #bfa06a; --board-edge-lo: #7d6436; }
-html:root[data-theme="light"] { --velvet: #23479c; --velvet-hi: #3f6fd0; --velvet-lo: #162d68; --board: #ffffff; --board-lo: #e3e8ee; --board-edge: #e0bd8a; --board-edge-lo: #b0834b; }
 
 /* The scene behind the board takes the theme too. */
 html[data-theme="trad"] body #gm.on {
