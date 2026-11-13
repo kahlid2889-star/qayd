@@ -237,7 +237,7 @@
   const base=window.drawAudioControls;
   if(typeof base!=='function')return;
   function draw(){
-    base();const audio=window.QaidAudio,extra=document.getElementById('qaid-audio-extra');if(!audio||!extra||!banks.length)return;
+    base();const audio=window.QaidAudio,extra=document.getElementById('qaid-audio-extra');if(!audio||!extra||banks.length<2)return; /* one voice: nothing to choose */
     let section=document.getElementById('qaid-voice-choice');
     if(!section){section=document.createElement('section');section.id='qaid-voice-choice';section.innerHTML='<h3>صوت الكلمات</h3><div id="c-voice-bank" class="ch" role="group" aria-label="اختيار صوت الكلمات"></div><p class="qaid-audio-note">السعودي هو الافتراضي. تتوفر أصوات كويتية وقطرية، أو تنويع الصوت حسب اللاعب. هذه أصوات مولّدة مسبقًا، ولا تحتاج اتصالًا بخدمة كلام أثناء اللعب.</p>';const group=section.querySelector('#c-voice-bank');for(const bank of [...banks,{id:'varied',label:'تنويع حسب اللاعب'}]){const button=document.createElement('button');button.type='button';button.dataset.voice=bank.id;button.textContent=bank.label;button.setAttribute('data-audio-skip','');group.append(button);}document.getElementById('c-speech')?.after(section);}
     if(!document.getElementById('qaid-voice-choice-style')){const style=document.createElement('style');style.id='qaid-voice-choice-style';style.textContent='#c-voice-bank{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#c-voice-bank button{min-width:0;min-height:44px;line-height:1.4;font-size:14px}#qaid-voice-choice .qaid-audio-note{font-size:12px}';document.head.append(style);}

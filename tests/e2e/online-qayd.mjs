@@ -36,8 +36,6 @@ check("A reaches its turn with tricks on the table", (await until(A, () => windo
 const plate = await B.gf().evaluate(() => { const l = [1, 2, 3].find((p) => QaidSync.person(p)); return { text: document.querySelector("#s" + l + " .nm small")?.textContent || "", seat: l }; });
 check("the other player's real level shows on his plate", /جديد/.test(plate.text), JSON.stringify(plate));
 await autopilot(A, false);
-// B uses another theme: the look is per player and must not touch the match
-await B.gf().evaluate(() => theme("dark")); await B.page.waitForTimeout(400);
 await A.gf().evaluate(() => qaid()); await A.page.waitForTimeout(300);
 check("a warning comes first, with a way to keep playing", await A.gf().evaluate(() => !!document.querySelector("#qaid-yes") && !!document.querySelector("#qaid-no")));
 check("B sees nothing until A confirms", await B.gf().evaluate(() => !document.querySelector("#ob").classList.contains("qc-watch")));
@@ -68,7 +66,6 @@ check("the round ends on both phones", done.every((d) => d >= 0), done.join(",")
 const verdict = await Promise.all([A, B].map((P) => P.gf().evaluate(() => ({ winnerReal: (R.forced.winner + QaidSync.you) % 2, tag: R.forced.tag, text: document.querySelector("#ob").innerText.slice(0, 60).replace(/\n/g, " ") }))));
 check("both phones agree which team took the round", verdict[0].winnerReal === verdict[1].winnerReal, JSON.stringify(verdict));
 await B.page.screenshot({ path: "screenshots/online-qayd-result-guest.png" });
-check("B kept its own theme", await B.gf().evaluate(() => document.documentElement.dataset.theme === "dark") && await A.gf().evaluate(() => document.documentElement.dataset.theme !== "dark"));
 await A.gf().evaluate(() => { window.__hold = false; }); await autopilot(A, true);
 const k0 = await A.gf().evaluate(() => QaidSync.k);
 await A.page.waitForTimeout(18000);

@@ -1,12 +1,9 @@
 /* ════════════════════════════════════════════════════════════════════════════
    قيد QAYD — official colour identity. The ONE place colours are defined.
 
-   Three themes, each with the same nine official colours. Everything else in the
-   game (and the account / online windows, see src/lib/qayd/theme.ts) reads these
-   tokens; nothing may hard-code a colour of its own.
-
-   To add a theme: copy one block, change the nine values, add its name to
-   THEMES in public/qayd-js/03-game.js (theme()) and src/lib/qayd/theme.ts.
+   One look: the heritage theme (burgundy and cream), nine official colours.
+   Everything else in the game (and the account / online windows, see
+   src/lib/qayd/theme.ts) reads these tokens; nothing hard-codes a colour of its own.
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* 1 · التراثي — Burgundy & Cream (default) */
@@ -34,55 +31,7 @@ html:root, html:root[data-theme="trad"] {
   color-scheme: light;
 }
 
-/* 2 · الفاتح — White & Blue */
-html:root[data-theme="light"] {
-  --c-bg: #FFFFFF;
-  --c-surface: #F2F6FA;
-  --c-primary: #397DB8;
-  --c-secondary: #20547F;
-  --c-deep: #173B5B;
-  --c-accent: #DCEAF7;
-  --c-text: #243447;
-  --c-text-2: #718096;
-  --c-border: #DCE4EC;
 
-  --c-on-primary: #FFFFFF;
-  --c-on-accent: #173B5B;
-  --c-link: #20547F;
-  --c-trim: #397DB8;
-  --c-primary-hover: #20547F;
-  --c-primary-active: #173B5B;
-  --c-chrome: #173B5B;
-  --c-on-chrome: #FFFFFF;
-  --c-danger: #C0394B;
-  --c-success: #2E8B62;
-  color-scheme: light;
-}
-
-/* 3 · الداكن — Charcoal & Green */
-html:root[data-theme="dark"] {
-  --c-bg: #101211;
-  --c-surface: #191E1B;
-  --c-primary: #315B40;
-  --c-secondary: #6C9A72;
-  --c-deep: #25352B;
-  --c-accent: #6C9A72;
-  --c-text: #E8EEE8;
-  --c-text-2: #A5B1A7;
-  --c-border: #303B33;
-
-  --c-on-primary: #E8EEE8;
-  --c-on-accent: #101211;
-  --c-link: #6C9A72;
-  --c-trim: #6C9A72;
-  --c-primary-hover: #3D7050;
-  --c-primary-active: #25352B;
-  --c-chrome: #191E1B;
-  --c-on-chrome: #E8EEE8;
-  --c-danger: #E0707F;
-  --c-success: #7FC79A;
-  color-scheme: dark;
-}
 
 /* ── derived from the nine: states, surfaces, shadows. Same recipe in every theme. ── */
 html:root {
@@ -118,36 +67,6 @@ html:root {
   --board-edge: var(--c-accent);
   --board-edge-lo: color-mix(in srgb, var(--c-accent) 62%, var(--c-deep));
   --board-shadow: var(--c-shadow-strong);
-}
-html:root[data-theme="light"] {
-  --c-primary-face: color-mix(in srgb, var(--c-primary) 82%, var(--c-secondary)); /* white text needs a touch more depth than the pure primary */
-  --velvet: var(--c-primary);
-  --velvet-hi: color-mix(in srgb, var(--c-primary) 72%, #FFFFFF);
-  --velvet-lo: var(--c-secondary);
-  --board: #FFFFFF;
-  --board-lo: var(--c-surface);
-  --board-edge: color-mix(in srgb, var(--c-primary) 30%, var(--c-border));
-  --board-edge-lo: color-mix(in srgb, var(--c-secondary) 45%, var(--c-border));
-  --c-btn: linear-gradient(180deg, var(--c-primary-face), var(--c-secondary));
-  --c-btn-pressed: linear-gradient(180deg, var(--c-secondary), var(--c-deep));
-}
-html:root[data-theme="dark"] {
-  --c-note: var(--c-text-2); --c-good: var(--c-success); --c-bad: var(--c-danger); --c-on-selected: var(--c-text);
-  --velvet: var(--c-primary);
-  --velvet-hi: color-mix(in srgb, var(--c-primary) 62%, var(--c-secondary));
-  --velvet-lo: var(--c-deep);
-  --board: color-mix(in srgb, var(--c-text) 92%, var(--c-secondary));
-  --board-lo: color-mix(in srgb, var(--c-text-2) 80%, var(--c-deep));
-  --board-edge: var(--c-secondary);
-  --board-edge-lo: var(--c-primary);
-  --c-raise: color-mix(in srgb, var(--c-surface) 78%, var(--c-border));
-  --c-sunk: color-mix(in srgb, var(--c-bg) 70%, var(--c-surface));
-  --c-selected: color-mix(in srgb, var(--c-primary) 42%, var(--c-surface));
-  --c-overlay: color-mix(in srgb, #000000 68%, transparent);
-  --c-shadow: color-mix(in srgb, #000000 42%, transparent);
-  --c-shadow-strong: color-mix(in srgb, #000000 62%, transparent);
-  --c-btn: linear-gradient(180deg, var(--c-primary-hover), var(--c-primary));
-  --c-btn-pressed: linear-gradient(180deg, var(--c-primary), var(--c-deep));
 }
 
 /* ── names the older style sections still read. They only point at the tokens above. ── */
@@ -193,7 +112,6 @@ html:root[data-theme] body button { -webkit-tap-highlight-color: transparent; }
 /* ── splash ── */
 html:root[data-theme] body #sp { background: var(--c-scene) !important; }
 html:root[data-theme] body #sp .id-word, html:root[data-theme] body #sp .home-splash-tagline { color: var(--c-primary) !important; }
-html:root[data-theme="dark"] body #sp .id-word, html:root[data-theme="dark"] body #sp .home-splash-tagline { color: var(--c-secondary) !important; }
 html:root[data-theme] body #sp .id-bar { background: var(--c-border) !important; }
 html:root[data-theme] body #sp .id-bar b { background: var(--c-primary) !important; }
 html:root[data-theme] body #sp .id-fly { color: color-mix(in srgb, var(--c-primary) 40%, transparent) !important; }

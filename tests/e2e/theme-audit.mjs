@@ -45,7 +45,7 @@ const scan = () => page.evaluate(() => {
 const until = async (fn, ms = 60000) => { const t = Date.now(); while (Date.now() - t < ms) { if (await page.evaluate(fn).catch(() => false)) return true; await page.waitForTimeout(150); } return false; };
 const closeAll = () => page.evaluate(() => { document.querySelectorAll(".mod").forEach((e) => e.classList.remove("on")); });
 let totalOff = 0, totalLow = 0;
-for (const t of (only ? [only] : ["trad", "light", "dark"])) {
+for (const t of (only ? [only] : ["trad"])) {
   const off = {}, low = new Map(); const take = async (state) => { const r = await scan(); for (const [k, v] of Object.entries(r.off)) (off[k] ??= new Set()).add(state + ": " + v[0]); for (const l of r.low) if (!low.has(l.el + l.text)) low.set(l.el + l.text, { state, ...l }); };
   await page.evaluate((t) => { theme(t); cfg.stake = 0; cfg.mode = "free"; }, t); await page.waitForTimeout(500);
   await take("home");
