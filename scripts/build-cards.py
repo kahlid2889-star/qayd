@@ -1,4 +1,4 @@
-"""Rebuild the 32 card faces inside public/qayd.html with one index style.
+"""Rebuild the 32 card faces (public/qayd-js/02-cards.js) with one index style.
 
 Before: every rank had its own font and its own size (A/K/Q/J large, 7-10 small).
 Now: one bold serif (Caladea Bold outlines), one cap height and one suit size on every
@@ -13,7 +13,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 
 ROOT = Path(__file__).resolve().parent.parent
-HTML = ROOT / "public" / "qayd.html"
+HTML = ROOT / "public" / "qayd-js" / "02-cards.js"  # the file that holds window.QAID_CARD_ART
 FONT = "/usr/share/fonts/truetype/crosextra/Caladea-Bold.ttf"
 W, H = 240, 324
 BLACK, RED = "#15171a", "#c8102e"

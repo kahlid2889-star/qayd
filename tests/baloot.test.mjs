@@ -1,14 +1,14 @@
-// Scoring and legal-play checks for the rules engine that lives inside public/qayd.html.
+// Scoring and legal-play checks for the rules engine that lives in public/qayd-js/03-game.js.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import vm from "node:vm";
 
-const html = readFileSync(new URL("../public/qayd.html", import.meta.url), "utf8");
+const html = readFileSync(new URL("../public/qayd-js/03-game.js", import.meta.url), "utf8");
 const start = html.indexOf("const Baloot = (() => {");
 const end = html.indexOf("if (typeof module !== 'undefined' && module.exports) module.exports = Baloot;");
-assert.ok(start > 0 && end > start, "rules engine not found in qayd.html");
+assert.ok(start > 0 && end > start, "rules engine not found in qayd-js/03-game.js");
 const Baloot = vm.runInNewContext(html.slice(start, end) + "\nBaloot;", { require: createRequire(import.meta.url) });
 
 const c = (s, r) => ({ s, r });
