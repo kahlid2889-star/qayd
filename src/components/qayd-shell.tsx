@@ -887,7 +887,7 @@ export function QaydShell() {
         outboxRef.current.length > 0 ||
         pendingRef.current.seats.length > 0 ||
         !!pendingRef.current.config;
-      timer = window.setTimeout(() => void loop(), busy ? 120 : playing ? 1500 : 1200);
+      timer = window.setTimeout(() => void loop(), busy ? 120 : playing ? 900 : 1200);
     };
     void loop();
     return () => {
