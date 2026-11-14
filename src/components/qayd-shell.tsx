@@ -65,6 +65,107 @@ function Choice({ on, disabled, onClick, children }: { on: boolean; disabled: bo
   );
 }
 
+type InviteCard = { id: string; name: string; online: boolean; activity: string };
+
+/** Ask friends to this room from the lobby itself, or share the code with anyone. */
+function InviteFriends({ code, inRoom }: { code: string; inRoom: Set<string> }) {
+  const [friends, setFriends] = useState<InviteCard[] | null>(null);
+  const [sent, setSent] = useState<Record<string, "wait" | "ok" | "fail">>({});
+  const [shareNote, setShareNote] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      listFriends()
+        .then((book) => { if (alive) setFriends(book.friends as InviteCard[]); })
+        .catch(() => { if (alive) setFriends((prev) => prev ?? []); });
+    void load();
+    const timer = window.setInterval(load, 15_000);
+    return () => { alive = false; window.clearInterval(timer); };
+  }, []);
+
+  const free = (friends ?? [])
+    .filter((f) => !inRoom.has(f.id))
+    .sort((a, b) => Number(b.online) - Number(a.online) || a.name.localeCompare(b.name, "ar"));
+
+  async function invite(id: string) {
+    setSent((prev) => ({ ...prev, [id]: "wait" }));
+    try {
+      await inviteFriend({ data: { id, code } });
+      setSent((prev) => ({ ...prev, [id]: "ok" }));
+    } catch {
+      setSent((prev) => ({ ...prev, [id]: "fail" }));
+    }
+  }
+
+  async function share() {
+    const text = `تعال نلعب بلوت في قيد. افتح أونلاين واكتب رمز الغرفة: ${code}`;
+    const url = location.origin + "/";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "قيد", text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setShareNote("انتسخ الرمز. ألصقه لخويك في أي محادثة.");
+    } catch (err) {
+      if ((err as { name?: string })?.name === "AbortError") return;
+      setShareNote(`ما قدرنا ننسخ. الرمز: ${code}`);
+    }
+  }
+
+  const where = (f: InviteCard) =>
+    f.activity === "live" ? "في صكة" : f.activity === "room" ? "في ديوانية" : f.online ? "متصل" : "غير متصل";
+
+  return (
+    <section aria-label="ادعُ أصدقاءك" className="grid gap-2 rounded-2xl border border-[var(--q-line)] p-3">
+      <h3 className="text-sm font-bold text-[var(--q-accent)]">ادعُ أصدقاءك</h3>
+      {friends === null ? (
+        <p className="text-xs text-[var(--q-muted)]">نجيب قائمة أصدقائك…</p>
+      ) : free.length === 0 ? (
+        <p className="text-xs leading-5 text-[var(--q-muted)]">
+          {friends.length ? "كل أصدقائك داخل الغرفة." : "ما عندك أصدقاء للحين. شارك الرمز مع أي أحد، أو أضفهم من قائمة الأصدقاء."}
+        </p>
+      ) : (
+        <ul className="grid max-h-56 gap-1.5 overflow-y-auto">
+          {free.map((f) => {
+            const state = sent[f.id];
+            return (
+              <li key={f.id} className="flex items-center justify-between gap-2 rounded-xl bg-[var(--q-card)] px-3 py-2">
+                <div className="min-w-0">
+                  <b className="block truncate text-sm text-[var(--q-ink)]">{f.name}</b>
+                  <span className={"text-xs " + (f.online ? "text-[var(--q-accent)]" : "text-[var(--q-muted)]")}>{where(f)}</span>
+                </div>
+                <button
+                  type="button"
+                  disabled={state === "wait" || state === "ok"}
+                  className={
+                    "min-h-10 shrink-0 rounded-lg px-4 text-sm font-bold disabled:opacity-70 " +
+                    (state === "ok"
+                      ? "border border-[var(--q-line)] text-[var(--q-muted)]"
+                      : "bg-[var(--q-primary)] text-[var(--q-primary-ink)]")
+                  }
+                  onClick={() => void invite(f.id)}
+                >
+                  {state === "ok" ? "انرسلت" : state === "wait" ? "…" : state === "fail" ? "أعد" : "ادعُه"}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <button
+        type="button"
+        className="min-h-11 rounded-xl border border-[var(--q-primary)] text-sm font-bold text-[var(--q-accent)]"
+        onClick={() => void share()}
+      >
+        شارك رمز الغرفة
+      </button>
+      {shareNote ? <p className="text-center text-xs text-[var(--q-muted)]">{shareNote}</p> : null}
+    </section>
+  );
+}
+
 /**
  * The session as the players see it before the deal: who is with whom, the play
  * mode, the match length and the stake. The owner edits; everyone else watches
@@ -183,6 +284,10 @@ function RoomBoard({
           </section>
         ))}
       </div>
+
+      {!live && members.length < 4 && room?.code ? (
+        <InviteFriends code={room.code} inRoom={new Set(members.map((m) => m.userId))} />
+      ) : null}
 
       <section className="grid gap-2 rounded-2xl border border-[var(--q-line)] p-3">
         <div className="flex items-center justify-between">
