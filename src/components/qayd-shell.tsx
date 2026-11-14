@@ -127,7 +127,7 @@ function RoomBoard({
             {room?.code === NAMED ? "قيد" : room?.code}
           </p>
         </div>
-        <p className="text-sm text-[var(--q-muted)]">{live ? "الصكة قائمة" : `${members.length} من ٤ · الباقي كمبيوتر`}</p>
+        <p className="text-sm text-[var(--q-muted)]">{live ? "الصكة قائمة" : members.length >= 4 ? "الطاولة كاملة: ٤ من ٤" : `${"٠١٢٣٤"[members.length] ?? members.length} من ٤ · الباقي كمبيوتر`}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
