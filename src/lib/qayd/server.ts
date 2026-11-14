@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { levelFromXp, roomCuts, roomEvalXp, settleMatch, stageLabel, threshold, clampCutReport, type SettleInput } from "@/lib/qayd/xp";
+import { serverDeck } from "@/lib/qayd/deck";
 import { activityOf, countField, isAdminId, knownAchievements, likePattern, rankCard } from "@/lib/qayd/social";
 
 const NAMED_CODE = "qafit";
@@ -1462,6 +1463,17 @@ function cleanMove(value: unknown) {
   return JSON.parse(raw) as Json;
 }
 
+/**
+ * The deal is the server's: whatever deck a phone sends is thrown away and the
+ * server shuffles instead, so no phone can stack the cards. Only the first
+ * write for a move number is kept, so every phone still gets the same deck.
+ */
+function serverDealt(body: Json): Json {
+  const obj = asObject(body);
+  if (!Array.isArray(obj.d)) return body;
+  return { d: serverDeck() };
+}
+
 /** Where the instant channel lives (public values only), or null to pull. */
 export const movesConfig = createServerFn({ method: "GET" }).handler(async () => {
   const rt = supabaseRealtime();
@@ -1485,9 +1497,10 @@ export const pushMove = createServerFn({ method: "POST" })
       return { ok: false as const, error: "لست في هذه الصكة" };
     }
     const now = Date.now();
+    const body = serverDealt(data.body);
     const inserted = await sql<{ k: number }>`
       insert into qayd_moves (match_id, k, seat, user_id, body, at)
-      values (${data.matchId}, ${data.k}, ${data.seat}, ${context.userId}, ${JSON.stringify(data.body)}::jsonb, ${now})
+      values (${data.matchId}, ${data.k}, ${data.seat}, ${context.userId}, ${JSON.stringify(body)}::jsonb, ${now})
       on conflict (match_id, k) do nothing
       returning k`;
     const rows = await sql<{ k: number; seat: number; body: unknown }>`

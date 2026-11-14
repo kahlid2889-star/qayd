@@ -243,7 +243,8 @@
   /* ---------- the decisions the game asks for ---------- */
   S.deal = async function (token) {
     const { body } = await decide(-1, token, {
-      lead: async () => ({ d: Baloot.shuffled(fairShuffleRandom).map(code) }),
+      /* The server shuffles: it replaces this request with its own deck, and every phone (this one too) waits for that copy. */
+      lead: async () => ({ d: [] }),
     });
     const list = Array.isArray(body.d) ? body.d.map(Number) : [];
     if (list.length !== 32 || new Set(list).size !== 32 || list.some((n) => !(n >= 0 && n < 32))) {
