@@ -117,37 +117,48 @@ function InviteFriends({ code, inRoom }: { code: string; inRoom: Set<string> }) 
   const where = (f: InviteCard) =>
     f.activity === "live" ? "في صكة" : f.activity === "room" ? "في ديوانية" : f.online ? "متصل" : "غير متصل";
 
+  const onlineCount = free.filter((f) => f.online).length;
+
   return (
     <section aria-label="ادعُ أصدقاءك" className="grid gap-2 rounded-2xl border border-[var(--q-line)] p-3">
-      <h3 className="text-sm font-bold text-[var(--q-accent)]">ادعُ أصدقاءك</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-[var(--q-accent)]">ادعُ أصدقاءك</h3>
+        {free.length ? <span className="text-xs text-[var(--q-muted)]">{onlineCount ? `${onlineCount.toLocaleString("ar-SA")} متصل` : "ولا أحد متصل"}</span> : null}
+      </div>
       {friends === null ? (
         <p className="text-xs text-[var(--q-muted)]">نجيب قائمة أصدقائك…</p>
       ) : free.length === 0 ? (
-        <p className="text-xs leading-5 text-[var(--q-muted)]">
-          {friends.length ? "كل أصدقائك داخل الغرفة." : "ما عندك أصدقاء للحين. شارك الرمز مع أي أحد، أو أضفهم من قائمة الأصدقاء."}
-        </p>
+        friends.length ? null : (
+          <p className="text-xs leading-5 text-[var(--q-muted)]">ما عندك أصدقاء للحين. شارك الرمز مع أي أحد، أو أضفهم من قائمة الأصدقاء.</p>
+        )
       ) : (
-        <ul className="grid max-h-56 gap-1.5 overflow-y-auto">
+        <ul className="grid max-h-60 gap-1.5 overflow-y-auto">
           {free.map((f) => {
             const state = sent[f.id];
             return (
-              <li key={f.id} className="flex items-center justify-between gap-2 rounded-xl bg-[var(--q-card)] px-3 py-2">
-                <div className="min-w-0">
+              <li key={f.id} className="flex items-center gap-3 rounded-xl bg-[var(--q-card)] px-3 py-2">
+                <span className={"relative grid h-10 w-10 shrink-0 place-items-center rounded-full font-bold " + (f.online ? "bg-[var(--q-primary)] text-[var(--q-primary-ink)]" : "bg-[var(--q-line)] text-[var(--q-muted)]")}>
+                  {(f.name.trim()[0] || "؟").toUpperCase()}
+                  {f.online ? <i className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--q-card)] bg-[var(--q-ok)]" /> : null}
+                </span>
+                <div className="min-w-0 flex-1">
                   <b className="block truncate text-sm text-[var(--q-ink)]">{f.name}</b>
-                  <span className={"text-xs " + (f.online ? "text-[var(--q-accent)]" : "text-[var(--q-muted)]")}>{where(f)}</span>
+                  <span className={"text-xs " + (f.online ? "text-[var(--q-ok)]" : "text-[var(--q-muted)]")}>{where(f)}</span>
                 </div>
                 <button
                   type="button"
                   disabled={state === "wait" || state === "ok"}
                   className={
-                    "min-h-10 shrink-0 rounded-lg px-4 text-sm font-bold disabled:opacity-70 " +
+                    "min-h-10 shrink-0 rounded-full px-4 text-sm font-bold transition-colors " +
                     (state === "ok"
-                      ? "border border-[var(--q-line)] text-[var(--q-muted)]"
-                      : "bg-[var(--q-primary)] text-[var(--q-primary-ink)]")
+                      ? "border border-[var(--q-ok)] text-[var(--q-ok)]"
+                      : state === "fail"
+                        ? "border border-[var(--q-error)] text-[var(--q-error)]"
+                        : "bg-[var(--q-primary)] text-[var(--q-primary-ink)] disabled:opacity-60")
                   }
                   onClick={() => void invite(f.id)}
                 >
-                  {state === "ok" ? "انرسلت" : state === "wait" ? "…" : state === "fail" ? "أعد" : "ادعُه"}
+                  {state === "ok" ? "✓ انرسلت" : state === "wait" ? "…" : state === "fail" ? "أعد" : "ادعُه"}
                 </button>
               </li>
             );
@@ -156,9 +167,12 @@ function InviteFriends({ code, inRoom }: { code: string; inRoom: Set<string> }) 
       )}
       <button
         type="button"
-        className="min-h-11 rounded-xl border border-[var(--q-primary)] text-sm font-bold text-[var(--q-accent)]"
+        className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--q-primary)] text-sm font-bold text-[var(--q-accent)]"
         onClick={() => void share()}
       >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+        </svg>
         شارك رمز الغرفة
       </button>
       {shareNote ? <p className="text-center text-xs text-[var(--q-muted)]">{shareNote}</p> : null}
@@ -204,10 +218,7 @@ function RoomBoard({
   const mySeat = mine?.seat ?? 0;
   const locked = live || !host;
   const at = (seat: number) => members.find((m) => m.seat === seat);
-  const teams = [
-    { title: "فريقي", seats: [mySeat, (mySeat + 2) % 4] },
-    { title: "الخصوم", seats: [(mySeat + 1) % 4, (mySeat + 3) % 4] },
-  ];
+
   const short = settings.stake > coins;
 
   function moveFor(member: Member): { seat: number; text: string } | null {
@@ -219,71 +230,97 @@ function RoomBoard({
     return { seat: 2, text: "خلّه معي" };
   }
 
+  function seatSpot(seat: number) {
+    const member = at(seat);
+    const mineTeam = seat % 2 === mySeat % 2;
+    const ring = mineTeam ? "ring-2 ring-[var(--q-gold)] ring-offset-2 ring-offset-[var(--q-bg)]" : "";
+    const move = member ? moveFor(member) : null;
+    const chip = "mt-1 min-h-9 rounded-full border px-3 text-xs font-bold";
+    const role = !member
+      ? "كمبيوتر"
+      : member.userId === meId
+        ? "أنت"
+        : member.seat === 0
+          ? "صاحب الطاولة"
+          : seat === (mySeat + 2) % 4
+            ? "خويّك"
+            : "خصم";
+    return (
+      <div className="grid min-w-0 justify-items-center text-center" dir="rtl">
+        {member ? (
+          <span className={"relative grid h-12 w-12 place-items-center rounded-full bg-[var(--q-primary)] text-lg font-bold text-[var(--q-primary-ink)] " + ring}>
+            {(label(member).trim()[0] || "؟").toUpperCase()}
+            {showPresence && member.online ? (
+              <i className="absolute -bottom-0.5 -end-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--q-bg)] bg-[var(--q-ok)]" aria-label="متصل" />
+            ) : null}
+          </span>
+        ) : (
+          <span className={"grid h-12 w-12 place-items-center rounded-full border-2 border-dashed border-[var(--q-line)] text-[var(--q-muted)] " + (mineTeam ? "ring-2 ring-[color-mix(in_srgb,var(--q-gold)_45%,transparent)] ring-offset-2 ring-offset-[var(--q-bg)]" : "")}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <rect x="5" y="8" width="14" height="11" rx="3" />
+              <path d="M12 8V5M9.5 13h.01M14.5 13h.01M10 16h4" />
+            </svg>
+          </span>
+        )}
+        <b className={"mt-1.5 max-w-full truncate text-sm " + (member ? "text-[var(--q-ink)]" : "text-[var(--q-muted)]")}>
+          {member ? label(member) : "مقعد فاضي"}
+        </b>
+        <span className="text-xs text-[var(--q-muted)]">{role}</span>
+        {move && member ? (
+          <button type="button" className={chip + " border-[var(--q-line)] bg-[var(--q-card)] text-[var(--q-accent)]"} onClick={() => onSeat(member.userId, move.seat)}>
+            {move.text}
+          </button>
+        ) : !member && !host && !live && seat !== 0 ? (
+          <button type="button" className={chip + " border-[var(--q-primary)] text-[var(--q-accent)]"} onClick={() => onSeat(meId, seat)}>
+            اجلس هنا
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 grid gap-3">
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--q-line)] bg-[var(--q-card)] px-4 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--q-primary)] px-4 py-3 text-[var(--q-primary-ink)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--q-gold)_55%,transparent)]">
         <div>
-          <p className="text-xs text-[var(--q-muted)]">رمز الجلسة</p>
-          <p className="qayd-display text-3xl tracking-[0.18em] text-[var(--q-accent)]" dir="ltr">
+          <p className="text-xs opacity-80">رمز الجلسة</p>
+          <p className="qayd-display text-3xl tracking-[0.18em] text-[var(--q-gold)]" dir="ltr">
             {room?.code === NAMED ? "قيد" : room?.code}
           </p>
         </div>
-        <p className="text-sm text-[var(--q-muted)]">{live ? "الصكة قائمة" : members.length >= 4 ? "الطاولة كاملة: ٤ من ٤" : `${"٠١٢٣٤"[members.length] ?? members.length} من ٤ · الباقي كمبيوتر`}</p>
+        <div className="grid justify-items-end gap-1.5">
+          <div className="flex gap-1" dir="ltr" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <span
+                key={i}
+                className={
+                  "h-2.5 w-2.5 rounded-full " +
+                  (i < members.length ? "bg-[var(--q-gold)]" : "border border-[color-mix(in_srgb,var(--q-gold)_70%,transparent)]")
+                }
+              />
+            ))}
+          </div>
+          <p className="text-xs opacity-90">
+            {live ? "الصكة قائمة" : members.length >= 4 ? "الطاولة كاملة" : `${"٠١٢٣٤"[members.length] ?? members.length} من ٤ لاعبين`}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        {teams.map((team) => (
-          <section key={team.title} className="rounded-2xl border border-[var(--q-line)] p-2">
-            <h3 className="px-1 pb-1 text-xs font-bold text-[var(--q-muted)]">{team.title}</h3>
-            <div className="grid gap-2">
-              {team.seats.map((seat) => {
-                const member = at(seat);
-                const move = member ? moveFor(member) : null;
-                return (
-                  <div key={seat} className="grid min-h-[4.5rem] content-center gap-1 rounded-xl bg-[var(--q-card)] px-3 py-2">
-                    {member ? (
-                      <>
-                        <b className="truncate text-[var(--q-ink)]">
-                          {label(member)}
-                          {member.userId === meId ? " · أنت" : ""}
-                        </b>
-                        <span className="text-xs text-[var(--q-muted)]">
-                          {member.seat === 0 ? "صاحب الطاولة" : "لاعب"}
-                          {showPresence && member.online ? " · متصل" : ""}
-                        </span>
-                        {move ? (
-                          <button
-                            type="button"
-                            className="min-h-9 justify-self-start rounded-lg border border-[var(--q-line)] px-3 text-xs text-[var(--q-accent)]"
-                            onClick={() => onSeat(member.userId, move.seat)}
-                          >
-                            {move.text}
-                          </button>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <b className="text-[var(--q-muted)]">كمبيوتر</b>
-                        {!host && !live && seat !== 0 ? (
-                          <button
-                            type="button"
-                            className="min-h-9 justify-self-start rounded-lg border border-[var(--q-line)] px-3 text-xs text-[var(--q-accent)]"
-                            onClick={() => onSeat(meId, seat)}
-                          >
-                            اجلس هنا
-                          </button>
-                        ) : (
-                          <span className="text-xs text-[var(--q-muted)]">مقعد فاضي</span>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
+      <section aria-label="المقاعد" className="rounded-2xl border border-[var(--q-line)] p-3">
+        <div className="grid grid-cols-[1fr_1.15fr_1fr] grid-rows-[auto_auto_auto] items-center gap-x-1 gap-y-2" dir="ltr">
+          <div className="col-start-2 row-start-1">{seatSpot((mySeat + 2) % 4)}</div>
+          <div className="col-start-1 row-start-2">{seatSpot((mySeat + 3) % 4)}</div>
+          <div className="col-start-2 row-start-2 grid aspect-[1.25] place-items-center rounded-[36%] bg-[var(--q-primary)] shadow-[inset_0_0_0_3px_var(--q-primary),inset_0_0_0_4.5px_var(--q-gold),0_6px_14px_var(--q-shadow)]">
+            <span className="qayd-display text-2xl text-[var(--q-gold)]">قيد</span>
+          </div>
+          <div className="col-start-3 row-start-2">{seatSpot((mySeat + 1) % 4)}</div>
+          <div className="col-start-2 row-start-3">{seatSpot(mySeat)}</div>
+        </div>
+        <p className="mt-3 flex items-center justify-center gap-3 text-xs text-[var(--q-muted)]">
+          <span className="inline-flex items-center gap-1"><i className="h-3 w-3 rounded-full border-2 border-[var(--q-gold)]" />فريقك</span>
+          <span className="inline-flex items-center gap-1"><i className="h-3 w-3 rounded-full border-2 border-[var(--q-line)]" />الخصوم</span>
+        </p>
+      </section>
 
       {!live && members.length < 4 && room?.code ? (
         <InviteFriends code={room.code} inRoom={new Set(members.map((m) => m.userId))} />
@@ -336,7 +373,12 @@ function RoomBoard({
           ابدأ الصكة
         </button>
       ) : null}
-      {!host && !live ? <p className="text-center text-sm text-[var(--q-muted)]">ننتظر صاحب الطاولة يضغط ابدأ.</p> : null}
+      {!host && !live ? (
+        <p className="flex items-center justify-center gap-2 rounded-xl bg-[var(--q-card)] py-3 text-sm text-[var(--q-muted)]">
+          <i className="h-2 w-2 animate-pulse rounded-full bg-[var(--q-gold)]" />
+          ننتظر صاحب الطاولة يبدأ الصكة
+        </p>
+      ) : null}
       {host && live ? (
         <button type="button" className="min-h-11 text-sm underline" onClick={onReset}>
           رجّع الديوانية
@@ -1328,9 +1370,13 @@ export function QaydShell() {
             ) : (
               <>
                 <p className="text-xs tracking-wide text-[var(--q-accent)]">ديوانية أونلاين</p>
-                <h2 className="qayd-display text-3xl leading-tight text-[var(--q-accent)]">{room?.title || TITLE}</h2>
+                <h2 className="qayd-display text-3xl leading-tight text-[var(--q-accent)]">
+                  {code && room && room.code !== NAMED ? "غرفة خاصة" : room?.title || TITLE}
+                </h2>
                 <p className="mt-2 text-sm leading-6">
-                  أنت وخويك تفتحون اللعبة وتضغطون أونلاين. نفس الديوانية، وأول واحد يبدأ الصكة. المقاعد الفاضية يكملها الكمبيوتر.
+                  {code
+                    ? "ادعُ ربعك أو شاركهم الرمز. المقعد الفاضي يلعبه الكمبيوتر."
+                    : "أنت وخويك تفتحون اللعبة وتضغطون أونلاين. نفس الديوانية، وأول واحد يبدأ الصكة. المقاعد الفاضية يكملها الكمبيوتر."}
                 </p>
                 <SignInGate fallback={<div className="mt-4"><AuthPanel /></div>}>
                   {!code ? (
