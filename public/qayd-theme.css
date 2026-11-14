@@ -262,8 +262,7 @@ html:root[data-theme] body #se #qa-host button { background: var(--c-raise) !imp
 html:root[data-theme] body #se #qa-host button.on, html:root[data-theme] body #se #qa-host button[aria-pressed="true"] { background: var(--c-selected) !important; color: var(--c-on-selected) !important; border-color: var(--c-primary) !important; }
 
 /* ── game: scene, header, dock ── */
-/* the play screen is the majlis: wall, cushions and carpet (public/qayd-majlis.svg), anchored under the header */
-html:root[data-theme] body #gm.on { background: var(--c-deep) url("/qayd-majlis.svg") center 54px / cover no-repeat !important; }
+html:root[data-theme] body #gm.on { background: var(--c-scene) !important; }
 html:root[data-theme] body #gm.on #hud {
   background: var(--c-chrome) !important; border-bottom: 1px solid var(--c-chrome-line) !important; box-shadow: 0 6px 18px var(--c-shadow-strong) !important; color: var(--c-on-chrome) !important;
 }
